@@ -1,0 +1,15 @@
+-------Data Location----------
+WorkspaceDirectory: /home/gwm17/working/GWM_EventBuilder/example
+-------------------------------
+------Experimental Inputs------
+ScalerFile: /home/gwm17/working/GWM_EventBuilder/etc/ScalerFile.txt
+-------------------------------
+-------Timing Information------
+BoardOffsetFile: /home/gwm17/working/GWM_EventBuilder/etc/ShiftMap_April2020_newFormat_10102020.txt
+SlowCoincidenceWindow(ps): 1.5e+06
+-------------------------------
+--------Run Information--------
+MinRun: 75
+MaxRun: 75
+BufferSize(hits): 200000
+-------------------------------
