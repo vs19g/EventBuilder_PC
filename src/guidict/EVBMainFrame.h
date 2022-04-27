@@ -12,10 +12,11 @@
 #include <TGProgressBar.h>
 #include <TTimer.h>
 #include <TGComboBox.h>
-#include "GWMEventBuilder.h"
+#include "../evb/EVBApp.h"
 
 
-class EVBMainFrame : public TGMainFrame {
+class EVBMainFrame : public TGMainFrame
+{
 public:
 	EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h);
 	virtual ~EVBMainFrame();
@@ -38,6 +39,7 @@ public:
 	void RunMerge(const char* dir, const char* file);
 	void DisableAllInput();
 	void EnableAllInput();
+	void SetProgressBarPosition(uint64_t val, uint64_t total);
 
 
 	enum WidgetId {
@@ -70,7 +72,7 @@ private:
 
 	TGPopupMenu *fFileMenu;
 
-	GWMEventBuilder fBuilder;
+	EventBuilder::EVBApp fBuilder;
 
 	int counter;
 	UInt_t MAIN_W, MAIN_H;

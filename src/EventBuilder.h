@@ -24,5 +24,8 @@
 #include <THashTable.h>
 #include <TCutG.h>
 
+//Mine
+#include "Logger.h"
+
 
 #endif

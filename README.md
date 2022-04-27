@@ -3,8 +3,15 @@ This is a program designed to be a launching point for event building data from 
 
 This code can in princple work with any setup that uses CAEN digitizers, as it requires no knowledge of the physical setup other than a coincidence window. It can also be used to build waveform data (THIS HAS NOT BEEN FULLY TESTED).
 
-## GWMEVB vs. GWMEVB_CL
-There are two programs provided. They are `GWMEVB` and `GWMEVB_CL`. The first is a full GUI version of the event builder. The GUI supports all conversion methods and the plotting tool. The second is a commandline version.
+## Installation
+To install, first pull the repository and all submodules using `git clone --recursive https://github.com/sesps/EventBuilder_Skeleton.git`. The repository uses the [*premake*](https://premake.github.io/) build system. Follow the link to download the premake5 release and then run `premake5 <type>`, where in type you should specify the type of project, from the top level directory of the repository. Then build the project for your enviroment. As an example, the typical process for a Linux machine would look like:
+- `premake5 gmake2`
+- `make -j 4`
+
+Currently the repository only supports Linux and Mac environments due to limiatations with building ROOT CERN dictionaries in Windows. 
+
+## EventBuilder vs. EventBuilderGui
+There are two programs provided. They are `EventBuilder` and `EventBuilderGui`. The second is a full GUI version of the event builder. The GUI supports all conversion methods and the plotting tool. The first is a commandline version.
 
 ### Building Events
 The event building operation is the bulk of the analysis process. As files are being converted to ROOT from the raw CoMPASS binary, events are built using information given by the user. In particular the code asks the user to specify a workspace (a top level directory which contains the following sub directories: raw_binary, temp_binary, raw_root, sorted), a shift file, a scaler file, a coincidence window, and the size of the file buffer in number of hits.
@@ -34,8 +41,3 @@ Currently the pipeline supports declaring individual digitizer channels as scale
 Only tested with `ROOT` 6.14, mileage may vary
 Uses C++11 standards
 Only compatible with MacOSX and Linux
-
-## Compliling and Running
-To compile use the command `make`
-To clean run `make clean` and then run `make`
-For a complete rebuild use `make clean_header` as well as `make clean`.
