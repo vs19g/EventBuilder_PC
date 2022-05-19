@@ -104,7 +104,6 @@ namespace EventBuilder {
 	
 	void EVBApp::Convert2RawRoot() 
 	{
-		int sys_return;
 		std::string rawroot_dir = m_workspace+"/raw_root/";
 		std::string unpack_dir = m_workspace+"/temp_binary/";
 		std::string binary_dir = m_workspace+"/raw_binary/";
@@ -131,11 +130,11 @@ namespace EventBuilder {
 			EVB_INFO("Converting file {0}...", binfile);
 			rawfile = rawroot_dir + "compass_run_"+ std::to_string(i) + ".root";
 			unpack_command = "tar -xzf "+binfile+" --directory "+unpack_dir;
-			wipe_command = "rm -r "+unpack_dir+"*.bin";
+			wipe_command = "rm -r "+unpack_dir+"*.BIN";
 	
-			sys_return = system(unpack_command.c_str());
+			system(unpack_command.c_str());
 			converter.Convert2RawRoot(rawfile);
-			sys_return = system(wipe_command.c_str());
+			system(wipe_command.c_str());
 	
 		}
 		EVB_INFO("Conversion complete.");
@@ -161,7 +160,6 @@ namespace EventBuilder {
 	
 	void EVBApp::Convert2SortedRoot() 
 	{
-		int sys_return;
 		std::string sortroot_dir = m_workspace+"/sorted/";
 		std::string unpack_dir = m_workspace+"/temp_binary/";
 		std::string binary_dir = m_workspace+"/raw_binary/";
@@ -191,11 +189,11 @@ namespace EventBuilder {
 	
 			sortfile = sortroot_dir +"run_"+std::to_string(i)+ ".root";
 			unpack_command = "tar -xzf "+binfile+" --directory "+unpack_dir;
-			wipe_command = "rm -r "+unpack_dir+"*.bin";
+			wipe_command = "rm -r "+unpack_dir+"*.BIN";
 	
-			sys_return = system(unpack_command.c_str());
+			system(unpack_command.c_str());
 			converter.Convert2SortedRoot(sortfile, m_SlowWindow);
-			sys_return = system(wipe_command.c_str());
+			system(wipe_command.c_str());
 			count++;
 		}
 		if(count==0)

@@ -47,7 +47,7 @@ namespace EventBuilder {
 		while(input>>filename)
 		{
 			input>>varname;
-			filename = directory+filename+"_run_"+std::to_string(runNum)+".bin";
+			filename = directory+filename+"_run_"+std::to_string(runNum)+".BIN";
 			m_scaler_map[filename] = TParameter<int64_t>(varname.c_str(), init);
 		}
 		input.close();
@@ -56,7 +56,7 @@ namespace EventBuilder {
 	bool CompassRun::GetBinaryFiles()
 	{
 		std::string prefix = "";
-		std::string suffix = ".bin"; //binaries
+		std::string suffix = ".BIN"; //binaries
 		RunCollector grabber(directory, prefix, suffix);
 		grabber.GrabAllFiles();
 	
@@ -165,10 +165,13 @@ namespace EventBuilder {
 	
 		outtree->Branch("Board", &hit.board);
 		outtree->Branch("Channel", &hit.channel);
-		outtree->Branch("Energy", &hit.lgate);
-		outtree->Branch("EnergyShort", &hit.sgate);
+		outtree->Branch("Energy", &hit.energy);
+		outtree->Branch("EnergyShort", &hit.energyShort);
+		outtree->Branch("EnergyCal", &hit.energyCalibrated);
 		outtree->Branch("Timestamp", &hit.timestamp);
 		outtree->Branch("Flags", &hit.flags);
+		outtree->Branch("Ns", &hit.Ns);
+		outtree->Branch("Samples", &hit.samples);
 	
 		if(!m_smap.IsSet())
 		{

@@ -31,8 +31,9 @@ namespace EventBuilder {
 	{
 		DPPChannel curHit;
 		curHit.Timestamp = mhit.timestamp/1.0e3; //convert to ns for easier drawing
-		curHit.Energy = mhit.lgate;
-		curHit.EnergyShort = mhit.sgate;
+		curHit.Energy = mhit.energy;
+		curHit.EnergyShort = mhit.energyShort;
+		curHit.EnergyCal = mhit.energyCalibrated;
 		curHit.Channel = mhit.channel;
 		curHit.Board = mhit.board;
 		curHit.Flags = mhit.flags;

@@ -17,33 +17,39 @@
 
 namespace EventBuilder {
 
-	class CompassFile
+	class CompassFile 
 	{
+		
 	public:
 		CompassFile();
 		CompassFile(const std::string& filename);
-		CompassFile(const std::string& filename, uint64_t bsize);
+		CompassFile(const std::string& filename, int bsize);
 		~CompassFile();
 		void Open(const std::string& filename);
 		void Close();
 		bool GetNextHit();
-
-		inline bool IsOpen() { return m_file->is_open(); }
+	
+		inline bool IsOpen() const { return m_file->is_open(); };
 		inline CompassHit GetCurrentHit() const { return m_currentHit; }
-		inline std::string GetName() { return  m_filename; }
-		inline bool CheckHitHasBeenUsed() { return m_hitUsedFlag; } //query to find out if we've used the current hit
+		inline std::string GetName() const { return  m_filename; }
+		inline bool CheckHitHasBeenUsed() const { return m_hitUsedFlag; } //query to find out if we've used the current hit
 		inline void SetHitHasBeenUsed() { m_hitUsedFlag = true; } //flip the flag to indicate the current hit has been used
-		inline bool IsEOF() { return m_eofFlag; }; //see if we've read all available data
+		inline bool IsEOF() const { return m_eofFlag; } //see if we've read all available data
 		inline bool* GetUsedFlagPtr() { return &m_hitUsedFlag; }
 		inline void AttachShiftMap(ShiftMap* map) { m_smap = map; }
-		inline uint64_t GetSize() { return m_size; }
-		inline uint64_t GetNumberOfHits() { return m_nHits; }
+		inline unsigned int GetSize() const { return m_size; }
+		inline unsigned int GetNumberOfHits() const { return m_nHits; }
 	
 	
 	private:
-		unsigned int GetHitSize();
+		void ReadHeader();
 		void ParseNextHit();
 		void GetNextBuffer();
+
+		inline bool IsEnergy() { return (m_header & CoMPASSHeaders::Energy) != 0; }
+		inline bool IsEnergyCalibrated() { return (m_header & CoMPASSHeaders::EnergyCalibrated) != 0; }
+		inline bool IsEnergyShort() { return (m_header & CoMPASSHeaders::EnergyShort) != 0; }
+		inline bool IsWaves() { return (m_header & CoMPASSHeaders::Waves) != 0; }
 	
 		using Buffer = std::vector<char>;
 	
@@ -54,16 +60,26 @@ namespace EventBuilder {
 		char* m_bufferIter;
 		char* m_bufferEnd;
 		ShiftMap* m_smap; //NOT owned by CompassFile. DO NOT delete
+	
 		bool m_hitUsedFlag;
-		uint64_t m_bufsizeHits = 200000; //size of the buffer in hits
-		uint32_t m_hitsize = 24; //size of a CompassHit in bytes (without alignment padding), sans waveform samples
-		uint64_t m_buffersize;
+		int m_bufsize = 200000; //size of the buffer in hits
+		int m_hitsize; //size of a CompassHit in bytes (without alignment padding)
+		uint16_t m_header;
+		int m_buffersize;
+	
 		CompassHit m_currentHit;
 		FilePointer m_file;
 		bool m_eofFlag;
-		uint64_t m_size; //size of the file in bytes
-		uint64_t m_nHits; //number of hits in the file (m_size/24)
-	
+		unsigned int m_size; //size of the file in bytes
+		unsigned int m_nHits; //number of hits in the file (m_size/24)
+
+		enum CoMPASSHeaders
+		{
+			Energy = 0x0001,
+			EnergyCalibrated = 0x0002,
+			EnergyShort = 0x0004,
+			Waves = 0x0008,
+		};
 	
 	};
 
