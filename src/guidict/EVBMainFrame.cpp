@@ -11,6 +11,8 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	SetCleanup(kDeepCleanup);
 	MAIN_W = w; MAIN_H = h;
 
+	fInfo = new TGFileInfo();
+
 	//Organization hints
 	TGLayoutHints *fchints = new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,5,5,5,5);
 	TGLayoutHints *fhints = new TGLayoutHints(kLHintsExpandX|kLHintsCenterY,5,5,5,5);
@@ -131,6 +133,7 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 EVBMainFrame::~EVBMainFrame()
 {
 	Cleanup();
+	delete fInfo;
 	delete this;
 }
 
@@ -142,9 +145,17 @@ void EVBMainFrame::CloseWindow()
 void EVBMainFrame::HandleMenuSelection(int id)
 {
 	if(id == M_SAVE_CONFIG)
-		new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, M_SAVE_CONFIG);
+	{
+		new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+		if(fInfo->fFilename)
+			SaveConfig(fInfo->fFilename);
+	}
 	else if(id == M_LOAD_CONFIG)
-		new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, M_LOAD_CONFIG);
+	{
+		new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+		if(fInfo->fFilename)
+			LoadConfig(fInfo->fFilename);
+	}
 	else if(id == M_EXIT)
 		CloseWindow();
 }
@@ -156,12 +167,16 @@ void EVBMainFrame::DoOpenWorkdir()
 
 void EVBMainFrame::DoOpenSMapfile()
 {
-	new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, SMAP);	
+	new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+	if(fInfo->fFilename)
+		DisplaySMap(fInfo->fFilename);
 }
 
 void EVBMainFrame::DoOpenScalerfile()
 {
-	new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, SCALER);
+	new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+	if(fInfo->fFilename)
+		DisplayScaler(fInfo->fFilename);
 }
 
 void EVBMainFrame::DoRun()

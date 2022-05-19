@@ -29,7 +29,7 @@ FileViewFrame::FileViewFrame(const TGWindow* p, const TGFrame* main, UInt_t w, U
 
 	/*Layout orgainization hints*/
 	TGLayoutHints *fhints = new TGLayoutHints(kLHintsCenterX|kLHintsCenterY,5,5,5,5);
-	TGLayoutHints *thints = new TGLayoutHints(kLHintsExpandX|kLHintsCenterY,5,5,5,5);
+	TGLayoutHints *thints = new TGLayoutHints(kLHintsExpandX|kLHintsBottom,5,5,5,5);
 	TGLayoutHints *fchints = new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,5,5,5,5);
 	TGLayoutHints *lhints = new TGLayoutHints(kLHintsLeft|kLHintsTop,5,5,5,5);
 	TGLayoutHints *fbhints = new TGLayoutHints(kLHintsCenterX|kLHintsBottom,5,5,5,5);

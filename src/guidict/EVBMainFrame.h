@@ -10,6 +10,7 @@
 #include <TGMenu.h>
 #include <TGTextViewStream.h>
 #include <TGProgressBar.h>
+#include <TGFileDialog.h>
 #include <TTimer.h>
 #include <TGComboBox.h>
 #include "../evb/EVBApp.h"
@@ -71,6 +72,8 @@ private:
 	TGHProgressBar* fProgressBar;
 
 	TGPopupMenu *fFileMenu;
+
+	TGFileInfo *fInfo;
 
 	EventBuilder::EVBApp fBuilder;
 
