@@ -13,7 +13,7 @@ struct DPPChannel
 {
 	double Timestamp;
 	int Channel, Board, Energy, EnergyShort;
-  uint64_t EnergyCal;
+  int64_t EnergyCal;
 	int Flags;
 	std::vector<uint16_t> Samples;
 };

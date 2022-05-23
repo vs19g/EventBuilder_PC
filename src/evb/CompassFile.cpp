@@ -90,8 +90,8 @@ namespace EventBuilder {
 		if(IsWaves())
 		{
 			m_hitsize += 5;
-			char* firstHit = new char[24]; //A compass hit by default has 24 bytes (at least in our setup)
-			m_file->read(firstHit, 24);
+			char* firstHit = new char[m_hitsize]; //A compass hit by default has 24 bytes (at least in our setup)
+			m_file->read(firstHit, m_hitsize);
 			firstHit += m_hitsize - 4;
 			uint32_t nsamples = *((uint32_t*) firstHit);
 			m_hitsize += nsamples * 2; //Each sample is a 2 byte data value
@@ -184,16 +184,18 @@ namespace EventBuilder {
 			m_bufferIter += 1;
 			m_currentHit.Ns = *((uint32_t*)m_bufferIter);
 			m_bufferIter += 4;
-			for(uint32_t i=0; i<m_currentHit.Ns; i++)
+			if(m_currentHit.samples.size() != m_currentHit.Ns)
+				m_currentHit.samples.resize(m_currentHit.Ns);
+			for(size_t i=0; i<m_currentHit.samples.size(); i++)
 			{
-				m_currentHit.samples.push_back(*(uint16_t*)m_bufferIter);
+				m_currentHit.samples[i] = *((uint16_t*)m_bufferIter);
 				m_bufferIter += 2;
 			}
 		}
 	
 		if(m_smap != nullptr) 
 		{ //memory safety
-			int gchan = m_currentHit.channel + m_currentHit.board*16;
+			int gchan = m_currentHit.channel + m_currentHit.board*m_channels_per_board;
 			m_currentHit.timestamp += m_smap->GetShift(gchan);
 		}
 	
