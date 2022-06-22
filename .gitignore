@@ -1,8 +1,6 @@
 ###directories to ignore###
-./rootfiles/
-./pics/
-./images/
-./hotfixes/
+.vscode/
+build/
 
 ###file types to ignore###
 *.swp
