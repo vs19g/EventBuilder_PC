@@ -4,11 +4,14 @@ This is a program designed to be a launching point for event building data from 
 This code can in princple work with any setup that uses CAEN digitizers, as it requires no knowledge of the physical setup other than a coincidence window. It can also be used to build waveform data (THIS HAS NOT BEEN FULLY TESTED).
 
 ## Installation
-To install, first pull the repository and all submodules using `git clone --recursive https://github.com/sesps/EventBuilder_Skeleton.git`. The repository uses the [*premake*](https://premake.github.io/) build system. Follow the link to download the premake5 release and then run `premake5 <type>`, where in type you should specify the type of project, from the top level directory of the repository. Then build the project for your enviroment. As an example, the typical process for a Linux machine would look like:
-- `premake5 gmake2`
-- `make -j 4`
-
-Currently the repository only supports Linux and Mac environments due to limiatations with building ROOT CERN dictionaries in Windows. 
+To install, first pull the repository and all submodules using `git clone --recursive https://github.com/sesps/EventBuilder_Skeleton.git`. The repository uses the CMake build system. To install simply run the following commands (for UNIX)
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+The executables are located in the `bin` directory of the EventBuilder_Skeleton, and should be run from the EventBuilder_Skeleton directory (as in `./bin/EventBuilderGui`).
 
 ## EventBuilder vs. EventBuilderGui
 There are two programs provided. They are `EventBuilder` and `EventBuilderGui`. The second is a full GUI version of the event builder. The GUI supports all conversion methods and the plotting tool. The first is a commandline version.
@@ -38,6 +41,5 @@ The program is capable of merging several root files together using either `hadd
 Currently the pipeline supports declaring individual digitizer channels as scalers. These channels will be used a pure counting measures. To make a channel a scaler, put the CoMPASS formated name of the channel and board (check the given etc/ScalerFile.txt for an example) in a text file along with a parameter name for the scaler to be saved as. These files are then processed outside of the event building loop, which can greatly increase the computational speed. Future versions will include scaler rates as well.
 
 ## System Requirements
-Only tested with `ROOT` 6.14, mileage may vary
-Uses C++11 standards
-Only compatible with MacOSX and Linux
+Requires ROOT version which supports CMake dictionary generation
+Requires CMake > 3.16
