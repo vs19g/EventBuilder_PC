@@ -25,7 +25,7 @@ namespace EventBuilder {
 	
 		for(int64_t i=0; i<tree->GetEntries(); i++)
 		{
-			tree->GetEntry();
+			tree->GetEntry(i);
 			if(prevStamp >= ts)
 			{
 				std::cerr<<"Bad order at entry "<<i<<" out of "<<tree->GetEntries()<<std::endl;
