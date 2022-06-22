@@ -1,4 +1,3 @@
-#include "EventBuilder.h"
 #include "EVBMainFrame.h"
 #include "FileViewFrame.h"
 #include <TGLabel.h>
@@ -11,6 +10,8 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 {
 	SetCleanup(kDeepCleanup);
 	MAIN_W = w; MAIN_H = h;
+
+	fInfo = new TGFileInfo();
 
 	//Organization hints
 	TGLayoutHints *fchints = new TGLayoutHints(kLHintsExpandX|kLHintsExpandY,5,5,5,5);
@@ -76,9 +77,9 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	TGLabel *typelabel = new TGLabel(RunFrame, "Operation Type:");
 	fTypeBox = new TGComboBox(RunFrame, TYPEBOX);
 	//Needs modification for new conversion based sorting GWM -- Dec 2020
-	fTypeBox->AddEntry("Convert Slow", GWMEventBuilder::CONVERT_S);
-	fTypeBox->AddEntry("Convert", GWMEventBuilder::CONVERT);
-	fTypeBox->AddEntry("Merge ROOT", GWMEventBuilder::MERGE);
+	fTypeBox->AddEntry("Convert Slow", EventBuilder::EVBApp::Operation::ConvertSlow);
+	fTypeBox->AddEntry("Convert", EventBuilder::EVBApp::Operation::Convert);
+	fTypeBox->AddEntry("Merge ROOT", EventBuilder::EVBApp::Operation::Merge);
 	fTypeBox->Resize(200,20);
 	fTypeBox->Connect("Selected(Int_t, Int_t)","EVBMainFrame",this,"HandleTypeSelection(Int_t,Int_t)");
 	TGLabel *rminlabel = new TGLabel(RunFrame, "Min Run:");
@@ -105,7 +106,6 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	fProgressBar = new TGHProgressBar(PBFrame, TGProgressBar::kFancy, w);
 	fProgressBar->ShowPosition();
 	fProgressBar->SetBarColor("lightblue");
-	fBuilder.AttachProgressBar(fProgressBar);
 	PBFrame->AddFrame(pbLabel, lhints);
 	PBFrame->AddFrame(fProgressBar, fhints);
 
@@ -121,6 +121,8 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	AddFrame(InputFrame, fchints);
 	AddFrame(PBFrame, fpbhints);
 
+	fBuilder.SetProgressCallbackFunc(BIND_PROGRESS_CALLBACK_FUNCTION(EVBMainFrame::SetProgressBarPosition));
+	fBuilder.SetProgressFraction(0.01);
 	SetWindowName("GWM Event Builder");
 	MapSubwindows();
 	Resize();
@@ -128,54 +130,77 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 
 }
 
-EVBMainFrame::~EVBMainFrame() {
+EVBMainFrame::~EVBMainFrame()
+{
 	Cleanup();
+	delete fInfo;
 	delete this;
 }
 
-void EVBMainFrame::CloseWindow() {
+void EVBMainFrame::CloseWindow()
+{
 	gApplication->Terminate();
 }
 
-void EVBMainFrame::HandleMenuSelection(int id) {
-	if(id == M_SAVE_CONFIG) new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, M_SAVE_CONFIG);
-	else if(id == M_LOAD_CONFIG) new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, M_LOAD_CONFIG);
-	else if(id == M_EXIT) CloseWindow();
+void EVBMainFrame::HandleMenuSelection(int id)
+{
+	if(id == M_SAVE_CONFIG)
+	{
+		new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+		if(fInfo->fFilename)
+			SaveConfig(fInfo->fFilename);
+	}
+	else if(id == M_LOAD_CONFIG)
+	{
+		new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+		if(fInfo->fFilename)
+			LoadConfig(fInfo->fFilename);
+	}
+	else if(id == M_EXIT)
+		CloseWindow();
 }
 
-void EVBMainFrame::DoOpenWorkdir() {
+void EVBMainFrame::DoOpenWorkdir()
+{
 	new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, WORKDIR);
 }
 
-void EVBMainFrame::DoOpenSMapfile() {
-	new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, SMAP);	
+void EVBMainFrame::DoOpenSMapfile()
+{
+	new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+	if(fInfo->fFilename)
+		DisplaySMap(fInfo->fFilename);
 }
 
-void EVBMainFrame::DoOpenScalerfile() {
-	new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, SCALER);
+void EVBMainFrame::DoOpenScalerfile()
+{
+	new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+	if(fInfo->fFilename)
+		DisplayScaler(fInfo->fFilename);
 }
 
-void EVBMainFrame::DoRun() {
+void EVBMainFrame::DoRun()
+{
 
 	DisableAllInput();
 
 	SetParameters();
 
 	int type = fTypeBox->GetSelected();
-	fBuilder.SetAnalysisType(type);
 
-	switch(type) {
-		case GWMEventBuilder::CONVERT :
+	switch(type)
+	{
+		case EventBuilder::EVBApp::Operation::Convert :
 		{
 			fBuilder.Convert2RawRoot();
 			break;
 		}
-		case GWMEventBuilder::MERGE :
+		case EventBuilder::EVBApp::Operation::Merge :
 		{
 			fBuilder.MergeROOTFiles();
 			break;
 		}
-		case GWMEventBuilder::CONVERT_S :
+		case EventBuilder::EVBApp::Operation::ConvertSlow :
 		{
 			fBuilder.Convert2SortedRoot();
 			break;
@@ -185,11 +210,13 @@ void EVBMainFrame::DoRun() {
 	EnableAllInput();
 }
 
-void EVBMainFrame::HandleTypeSelection(int box, int entry) {
+void EVBMainFrame::HandleTypeSelection(int box, int entry)
+{
 	fRunButton->SetState(kButtonUp);
 }
 
-bool EVBMainFrame::SetParameters() {
+bool EVBMainFrame::SetParameters()
+{
 	fBuilder.SetRunRange(fRMinField->GetIntNumber(), fRMaxField->GetIntNumber());
 	fBuilder.SetSlowCoincidenceWindow(fSlowWindowField->GetNumber());
 	fBuilder.SetBufferSize(fBufferSizeField->GetNumber());
@@ -200,27 +227,32 @@ bool EVBMainFrame::SetParameters() {
 	return true;
 }
 
-void EVBMainFrame::DisplayWorkdir(const char* dir) {
+void EVBMainFrame::DisplayWorkdir(const char* dir)
+{
 	fWorkField->SetText(dir);
 	fBuilder.SetWorkDirectory(dir);
 }
 
-void EVBMainFrame::DisplaySMap(const char* file) {
+void EVBMainFrame::DisplaySMap(const char* file)
+{
 	fSMapField->SetText(file);
 	fBuilder.SetBoardShiftFile(file);
 }
 
-void EVBMainFrame::DisplayScaler(const char* file) {
+void EVBMainFrame::DisplayScaler(const char* file)
+{
 	fScalerField->SetText(file);
 	fBuilder.SetScalerFile(file);
 }
 
-void EVBMainFrame::SaveConfig(const char* file) {
+void EVBMainFrame::SaveConfig(const char* file)
+{
 	std::string filename = file;
 	fBuilder.WriteConfigFile(filename);
 }
 
-void EVBMainFrame::LoadConfig(const char* file) {
+void EVBMainFrame::LoadConfig(const char* file)
+{
 	std::string filename = file;
 	fBuilder.ReadConfigFile(filename);
 
@@ -236,24 +268,26 @@ void EVBMainFrame::LoadConfig(const char* file) {
 
 }
 
-void EVBMainFrame::UpdateWorkdir() {
+void EVBMainFrame::UpdateWorkdir()
+{
 	const char* dir = fWorkField->GetText();
 	fBuilder.SetWorkDirectory(dir);
 }
 
-void EVBMainFrame::UpdateSMap() {
+void EVBMainFrame::UpdateSMap()
+{
 	const char* file = fSMapField->GetText();
 	fBuilder.SetBoardShiftFile(file);
 }
 
-void EVBMainFrame::UpdateScaler() {
+void EVBMainFrame::UpdateScaler()
+{
 	const char* file = fScalerField->GetText();
 	fBuilder.SetScalerFile(file);
 }
 
-void EVBMainFrame::RunMerge(const char* file, const char* dir) {}
-
-void EVBMainFrame::DisableAllInput() {
+void EVBMainFrame::DisableAllInput()
+{
 	fRunButton->SetState(kButtonDisabled);
 	fOpenWorkButton->SetState(kButtonDisabled);
 	fOpenSMapButton->SetState(kButtonDisabled);
@@ -272,7 +306,8 @@ void EVBMainFrame::DisableAllInput() {
 	fSlowWindowField->SetState(false);
 }
 
-void EVBMainFrame::EnableAllInput() {
+void EVBMainFrame::EnableAllInput()
+{
 	fRunButton->SetState(kButtonUp);
 	fOpenWorkButton->SetState(kButtonUp);
 	fOpenSMapButton->SetState(kButtonUp);
@@ -289,5 +324,12 @@ void EVBMainFrame::EnableAllInput() {
 	fRMinField->SetState(true);
 
 	fSlowWindowField->SetState(true);
+}
 
+void EVBMainFrame::SetProgressBarPosition(uint64_t val, uint64_t total)
+{
+	fProgressBar->SetMin(0);
+	fProgressBar->SetMax(total);
+	fProgressBar->SetPosition(val);
+	gSystem->ProcessEvents();
 }

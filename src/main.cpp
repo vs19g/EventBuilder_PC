@@ -1,11 +1,14 @@
 #include "EventBuilder.h"
-#include "GWMEventBuilder.h"
+#include "EVBApp.h"
 #include "Stopwatch.h"
 
 int main(int argc, char** argv) {
-	if(argc != 3) {
-		std::cerr<<"Incorrect number of command line arguments!"<<std::endl;
-		std::cerr<<"Need to specify type of operation (buildSlow, buildFast, etc.) and input file."<<std::endl;
+
+	EventBuilder::Logger::Init();
+	if(argc != 3)
+	{
+		EVB_ERROR("Incorrect number of command line arguments!");
+		EVB_ERROR("Need to specify type of operation (buildSlow, buildFast, etc.) and input file.");
 		return 1;
 	}
 
@@ -19,27 +22,32 @@ int main(int argc, char** argv) {
 		merge (combine root files)
 	*/
 
-	GWMEventBuilder theBuilder;
-	if(!theBuilder.ReadConfigFile(filename)) {
+	EventBuilder::EVBApp theBuilder;
+	if(!theBuilder.ReadConfigFile(filename))
+	{
 		return 1;
 	}
-	Stopwatch timer;
+	EventBuilder::Stopwatch timer;
 	timer.Start();
-	if(operation == "convert") {
-		theBuilder.SetAnalysisType(GWMEventBuilder::CONVERT);
+	if(operation == "convert")
+	{
 		theBuilder.Convert2RawRoot();
-	} else if(operation == "merge") {
-		theBuilder.SetAnalysisType(GWMEventBuilder::MERGE);
+	}
+	else if(operation == "merge")
+	{
 		theBuilder.MergeROOTFiles();
-	} else if (operation == "convertSlow"){
-		theBuilder.SetAnalysisType(GWMEventBuilder::CONVERT_S);
+	}
+	else if (operation == "convertSlow")
+	{
 		theBuilder.Convert2SortedRoot();
-	} else {
-		std::cerr<<"Unidentified type of operation! Check your first argument."<<std::endl;
+	}
+	else
+	{
+		EVB_ERROR("Unidentified type of operation! Check your first argument.");
 		return 1;
 	}
 	timer.Stop();
-	std::cout<<"Elapsed time (ms): "<<timer.GetElapsedMilliseconds()<<std::endl;
+	EVB_INFO("Elapsed time (ms): {0}", timer.GetElapsedMilliseconds());
 
 	return 0;
 }

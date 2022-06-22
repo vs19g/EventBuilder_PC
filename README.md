@@ -3,8 +3,18 @@ This is a program designed to be a launching point for event building data from 
 
 This code can in princple work with any setup that uses CAEN digitizers, as it requires no knowledge of the physical setup other than a coincidence window. It can also be used to build waveform data (THIS HAS NOT BEEN FULLY TESTED).
 
-## GWMEVB vs. GWMEVB_CL
-There are two programs provided. They are `GWMEVB` and `GWMEVB_CL`. The first is a full GUI version of the event builder. The GUI supports all conversion methods and the plotting tool. The second is a commandline version.
+## Installation
+To install, first pull the repository and all submodules using `git clone --recursive https://github.com/sesps/EventBuilder_Skeleton.git`. The repository uses the CMake build system. To install simply run the following commands (for UNIX)
+```
+mkdir build
+cd build
+cmake ..
+make
+```
+The executables are located in the `bin` directory of the EventBuilder_Skeleton, and should be run from the EventBuilder_Skeleton directory (as in `./bin/EventBuilderGui`).
+
+## EventBuilder vs. EventBuilderGui
+There are two programs provided. They are `EventBuilder` and `EventBuilderGui`. The second is a full GUI version of the event builder. The GUI supports all conversion methods and the plotting tool. The first is a commandline version.
 
 ### Building Events
 The event building operation is the bulk of the analysis process. As files are being converted to ROOT from the raw CoMPASS binary, events are built using information given by the user. In particular the code asks the user to specify a workspace (a top level directory which contains the following sub directories: raw_binary, temp_binary, raw_root, sorted), a shift file, a scaler file, a coincidence window, and the size of the file buffer in number of hits.
@@ -31,11 +41,6 @@ The program is capable of merging several root files together using either `hadd
 Currently the pipeline supports declaring individual digitizer channels as scalers. These channels will be used a pure counting measures. To make a channel a scaler, put the CoMPASS formated name of the channel and board (check the given etc/ScalerFile.txt for an example) in a text file along with a parameter name for the scaler to be saved as. These files are then processed outside of the event building loop, which can greatly increase the computational speed. Future versions will include scaler rates as well.
 
 ## System Requirements
-Only tested with `ROOT` 6.14, mileage may vary
-Uses C++11 standards
-Only compatible with MacOSX and Linux
-
-## Compliling and Running
-To compile use the command `make`
-To clean run `make clean` and then run `make`
-For a complete rebuild use `make clean_header` as well as `make clean`.
+- Requires ROOT version which supports CMake dictionary generation
+- Requires CMake > 3.16
+- This version is for data from CAEN CoMPASS > 2.0. Data from older CoMPASS versions are not compatible.
