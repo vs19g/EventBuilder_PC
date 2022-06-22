@@ -119,6 +119,8 @@ namespace EventBuilder {
 		converter.SetScalerInput(m_scalerfile);
 		converter.SetProgressCallbackFunc(m_progressCallback);
 		converter.SetProgressFraction(m_progressFraction);
+
+		int result;
 	
 		EVB_INFO("Beginning conversion...");
 		for(int i=m_rmin; i<=m_rmax; i++) 
@@ -132,9 +134,9 @@ namespace EventBuilder {
 			unpack_command = "tar -xzf "+binfile+" --directory "+unpack_dir;
 			wipe_command = "rm -r "+unpack_dir+"*.BIN";
 	
-			system(unpack_command.c_str());
+			result = system(unpack_command.c_str());
 			converter.Convert2RawRoot(rawfile);
-			system(wipe_command.c_str());
+			result = system(wipe_command.c_str());
 	
 		}
 		EVB_INFO("Conversion complete.");
@@ -176,6 +178,7 @@ namespace EventBuilder {
 		converter.SetProgressCallbackFunc(m_progressCallback);
 		converter.SetProgressFraction(m_progressFraction);
 	
+		int result;
 		EVB_INFO("Beginning conversion...");
 	
 		int count=0;
@@ -191,9 +194,9 @@ namespace EventBuilder {
 			unpack_command = "tar -xzf "+binfile+" --directory "+unpack_dir;
 			wipe_command = "rm -r "+unpack_dir+"*.BIN";
 	
-			system(unpack_command.c_str());
+			result = system(unpack_command.c_str());
 			converter.Convert2SortedRoot(sortfile, m_SlowWindow);
-			system(wipe_command.c_str());
+			result = system(wipe_command.c_str());
 			count++;
 		}
 		if(count==0)
