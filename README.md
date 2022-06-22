@@ -41,5 +41,6 @@ The program is capable of merging several root files together using either `hadd
 Currently the pipeline supports declaring individual digitizer channels as scalers. These channels will be used a pure counting measures. To make a channel a scaler, put the CoMPASS formated name of the channel and board (check the given etc/ScalerFile.txt for an example) in a text file along with a parameter name for the scaler to be saved as. These files are then processed outside of the event building loop, which can greatly increase the computational speed. Future versions will include scaler rates as well.
 
 ## System Requirements
-Requires ROOT version which supports CMake dictionary generation
-Requires CMake > 3.16
+- Requires ROOT version which supports CMake dictionary generation
+- Requires CMake > 3.16
+- This version is for data from CAEN CoMPASS > 2.0. Data from older CoMPASS versions are not compatible.
