@@ -23,7 +23,7 @@ namespace EventBuilder {
 	{
 	public:
 		CompassRun();
-		CompassRun(const std::string& dir, uint64_t bsize);
+		CompassRun(const std::string& dir, size_t bsize);
 		~CompassRun();
 		inline void SetDirectory(const std::string& dir) { directory = dir; }
 		inline void SetScalerInput(const std::string& filename) { m_scalerinput = filename; }

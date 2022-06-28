@@ -27,7 +27,7 @@ namespace EventBuilder {
 	{
 	}
 	
-	void EVBApp::DefaultProgressCallback(long curVal, long totalVal)
+	void EVBApp::DefaultProgressCallback(int64_t curVal, int64_t totalVal)
 	{
 		double fraction = ((double)curVal)/totalVal;
 		EVB_INFO("Percent of run built: {0}", fraction*100);
