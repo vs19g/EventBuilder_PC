@@ -20,11 +20,9 @@ target_sources(EventBuilderCore PRIVATE
     CompassFile.h
     EVBApp.h
     Logger.cpp
-    RunCollector.cpp
     ShiftMap.h
     CompassHit.h
     Logger.h
-    RunCollector.h
     SlowSort.cpp
     CompassRun.cpp
     SlowSort.h
