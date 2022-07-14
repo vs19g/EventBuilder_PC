@@ -1,5 +1,4 @@
 #include "EVBMainFrame.h"
-#include "FileViewFrame.h"
 #include <TGLabel.h>
 #include <TGTextBuffer.h>
 #include <TApplication.h>
@@ -31,7 +30,6 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	TGLabel* workLabel = new TGLabel(WorkFrame, "Workspace Directory:");
 	fWorkField = new TGTextEntry(WorkFrame, new TGTextBuffer(120), WORKDIR);
 	fWorkField->Resize(w*0.25, fWorkField->GetDefaultHeight());
-	fWorkField->Connect("ReturnPressed()","EVBMainFrame",this,"UpdateWorkdir()");
 	fOpenWorkButton = new TGTextButton(WorkFrame, "Open");
 	fOpenWorkButton->Connect("Clicked()","EVBMainFrame",this,"DoOpenWorkdir()");
 	WorkFrame->AddFrame(workLabel, lhints);
@@ -42,7 +40,6 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	TGLabel* smaplabel = new TGLabel(SMapFrame, "Board Shift File:");
 	fSMapField = new TGTextEntry(SMapFrame, new TGTextBuffer(120), SMAP);
 	fSMapField->Resize(w*0.25, fSMapField->GetDefaultHeight());
-	fSMapField->Connect("ReturnPressed()","EVBMainFrame",this,"UpdateSMap()");
 	fOpenSMapButton = new TGTextButton(SMapFrame, "Open");
 	fOpenSMapButton->Connect("Clicked()","EVBMainFrame",this,"DoOpenSMapfile()");
 	SMapFrame->AddFrame(smaplabel, lhints);
@@ -52,7 +49,6 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	TGHorizontalFrame *ScalerFrame = new TGHorizontalFrame(NameFrame, w, h*0.1);
 	TGLabel* sclabel = new TGLabel(ScalerFrame, "Scaler File: ");
 	fScalerField = new TGTextEntry(ScalerFrame, new TGTextBuffer(120), SCALER);
-	fScalerField->Connect("ReturnPressed()","EVBMainFrame",this,"UpdateScaler()");
 	fOpenScalerButton = new TGTextButton(ScalerFrame, "Open");
 	fOpenScalerButton->Connect("Clicked()","EVBMainFrame", this, "DoOpenScalerfile()");
 	ScalerFrame->AddFrame(sclabel, lhints);
@@ -121,8 +117,8 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	AddFrame(InputFrame, fchints);
 	AddFrame(PBFrame, fpbhints);
 
-	fBuilder.SetProgressCallbackFunc(BIND_PROGRESS_CALLBACK_FUNCTION(EVBMainFrame::SetProgressBarPosition));
-	fBuilder.SetProgressFraction(0.01);
+	m_builder.SetProgressCallbackFunc(BIND_PROGRESS_CALLBACK_FUNCTION(EVBMainFrame::SetProgressBarPosition));
+	m_builder.SetProgressFraction(0.01);
 	SetWindowName("GWM Event Builder");
 	MapSubwindows();
 	Resize();
@@ -162,7 +158,12 @@ void EVBMainFrame::HandleMenuSelection(int id)
 
 void EVBMainFrame::DoOpenWorkdir()
 {
-	new FileViewFrame(gClient->GetRoot(), this, MAIN_W*0.5, MAIN_H*0.25, this, WORKDIR);
+	new TGFileDialog(gClient->GetRoot(), this, kDOpen, fInfo);
+	if(fInfo->fFilename)
+	{
+		std::string path_wtrailer = fInfo->fFilename + std::string("/");
+		DisplayWorkdir(path_wtrailer.c_str());
+	}
 }
 
 void EVBMainFrame::DoOpenSMapfile()
@@ -192,17 +193,17 @@ void EVBMainFrame::DoRun()
 	{
 		case EventBuilder::EVBApp::Operation::Convert :
 		{
-			fBuilder.Convert2RawRoot();
+			m_builder.Convert2RawRoot();
 			break;
 		}
 		case EventBuilder::EVBApp::Operation::Merge :
 		{
-			fBuilder.MergeROOTFiles();
+			m_builder.MergeROOTFiles();
 			break;
 		}
 		case EventBuilder::EVBApp::Operation::ConvertSlow :
 		{
-			fBuilder.Convert2SortedRoot();
+			m_builder.Convert2SortedRoot();
 			break;
 		}
 	}
@@ -217,12 +218,15 @@ void EVBMainFrame::HandleTypeSelection(int box, int entry)
 
 bool EVBMainFrame::SetParameters()
 {
-	fBuilder.SetRunRange(fRMinField->GetIntNumber(), fRMaxField->GetIntNumber());
-	fBuilder.SetSlowCoincidenceWindow(fSlowWindowField->GetNumber());
-	fBuilder.SetBufferSize(fBufferSizeField->GetNumber());
-	UpdateWorkdir();
-	UpdateSMap();
-	UpdateScaler();
+	m_params.runMin = fRMinField->GetIntNumber();
+	m_params.runMax = fRMaxField->GetIntNumber();
+	m_params.slowCoincidenceWindow = fSlowWindowField->GetNumber();
+	m_params.bufferSize = fBufferSizeField->GetIntNumber();
+	m_params.workspaceDir = fWorkField->GetText();
+	m_params.timeShiftFile = fSMapField->GetText();
+	m_params.scalerFile = fScalerField->GetText();
+
+	m_builder.SetParameters(m_params);
 	
 	return true;
 }
@@ -230,60 +234,44 @@ bool EVBMainFrame::SetParameters()
 void EVBMainFrame::DisplayWorkdir(const char* dir)
 {
 	fWorkField->SetText(dir);
-	fBuilder.SetWorkDirectory(dir);
+	SetParameters();
 }
 
 void EVBMainFrame::DisplaySMap(const char* file)
 {
 	fSMapField->SetText(file);
-	fBuilder.SetBoardShiftFile(file);
+	SetParameters();
 }
 
 void EVBMainFrame::DisplayScaler(const char* file)
 {
 	fScalerField->SetText(file);
-	fBuilder.SetScalerFile(file);
+	SetParameters();
 }
 
 void EVBMainFrame::SaveConfig(const char* file)
 {
 	std::string filename = file;
-	fBuilder.WriteConfigFile(filename);
+	m_builder.WriteConfigFile(filename);
 }
 
 void EVBMainFrame::LoadConfig(const char* file)
 {
 	std::string filename = file;
-	fBuilder.ReadConfigFile(filename);
+	m_builder.ReadConfigFile(filename);
+	m_params = m_builder.GetParameters();
 
-	fWorkField->SetText(fBuilder.GetWorkDirectory().c_str());
-	fSMapField->SetText(fBuilder.GetBoardShiftFile().c_str());
-	fScalerField->SetText(fBuilder.GetScalerFile().c_str());
+	fWorkField->SetText(m_params.workspaceDir.c_str());
+	fSMapField->SetText(m_params.timeShiftFile.c_str());
+	fScalerField->SetText(m_params.scalerFile.c_str());
 	
 
-	fSlowWindowField->SetNumber(fBuilder.GetSlowCoincidenceWindow());
+	fSlowWindowField->SetNumber(m_params.slowCoincidenceWindow);
 
-	fRMaxField->SetIntNumber(fBuilder.GetRunMax());
-	fRMinField->SetIntNumber(fBuilder.GetRunMin());
+	fRMaxField->SetIntNumber(m_params.runMin);
+	fRMinField->SetIntNumber(m_params.runMax);
+	fBufferSizeField->SetIntNumber(m_params.bufferSize);
 
-}
-
-void EVBMainFrame::UpdateWorkdir()
-{
-	const char* dir = fWorkField->GetText();
-	fBuilder.SetWorkDirectory(dir);
-}
-
-void EVBMainFrame::UpdateSMap()
-{
-	const char* file = fSMapField->GetText();
-	fBuilder.SetBoardShiftFile(file);
-}
-
-void EVBMainFrame::UpdateScaler()
-{
-	const char* file = fScalerField->GetText();
-	fBuilder.SetScalerFile(file);
 }
 
 void EVBMainFrame::DisableAllInput()

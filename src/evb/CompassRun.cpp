@@ -9,24 +9,16 @@
 
 	Updated to also handle scaler data. -- GWM Oct. 2020
 */
-#include "EventBuilder.h"
 #include "CompassRun.h"
-#include "RunCollector.h"
 #include "SlowSort.h"
 #include "FlagHandler.h"
 
 namespace EventBuilder {
-
-	CompassRun::CompassRun() :
-		directory(""), m_scalerinput(""), runNum(0), m_buffersize(200000), m_scaler_flag(false)
+	
+	CompassRun::CompassRun(const EVBParameters& params, const std::shared_ptr<EVBWorkspace>& workspace) :
+		m_params(params), m_workspace(workspace), m_runNum(0), m_scaler_flag(false)
 	{
-	
-	}
-	
-	CompassRun::CompassRun(const std::string& dir, size_t bsize) :
-		directory(dir), m_scalerinput(""), runNum(0), m_buffersize(bsize), m_scaler_flag(false)
-	{
-	
+		m_smap.SetFile(m_params.timeShiftFile);
 	}
 	
 	CompassRun::~CompassRun() {}
@@ -35,7 +27,7 @@ namespace EventBuilder {
 	/*Load em into a map*/
 	void CompassRun::SetScalers()
 	{
-		std::ifstream input(m_scalerinput);
+		std::ifstream input(m_params.scalerFile);
 		if(!input.is_open()) return;
 	
 		m_scaler_flag = true;
@@ -47,7 +39,7 @@ namespace EventBuilder {
 		while(input>>filename)
 		{
 			input>>varname;
-			filename = directory+filename+"_run_"+std::to_string(runNum)+".BIN";
+			filename = m_workspace->GetTempDir()+filename+"_run_"+std::to_string(m_runNum)+".BIN";
 			m_scaler_map[filename] = TParameter<int64_t>(varname.c_str(), init);
 		}
 		input.close();
@@ -55,17 +47,14 @@ namespace EventBuilder {
 	
 	bool CompassRun::GetBinaryFiles()
 	{
-		std::string prefix = "";
-		std::string suffix = ".BIN"; //binaries
-		RunCollector grabber(directory, prefix, suffix);
-		grabber.GrabAllFiles();
-	
+		auto files = m_workspace->GetTempFiles();
+
 		m_datafiles.clear(); //so that the CompassRun can be reused
-		m_datafiles.reserve(grabber.GetFileList().size());
+		m_datafiles.reserve(files.size()); //To avoid move semantics use reserve. Moving std::ifstream is dangerous
 		bool scalerd;
 		m_totalHits = 0; //reset total run size
 	
-		for(auto& entry : grabber.GetFileList())
+		for(auto& entry : files)
 		{
 			//Handle scaler files, if they exist
 			if(m_scaler_flag)
@@ -83,7 +72,7 @@ namespace EventBuilder {
 				if(scalerd)
 					continue;
 			}
-			m_datafiles.emplace_back(entry, m_buffersize);
+			m_datafiles.emplace_back(entry, m_params.bufferSize);
 			m_datafiles[m_datafiles.size()-1].AttachShiftMap(&m_smap);
 			//Any time we have a file that fails to be found, we terminate the whole process
 			if(!m_datafiles[m_datafiles.size() - 1].IsOpen())
@@ -130,18 +119,18 @@ namespace EventBuilder {
 	{
 	
 		std::pair<CompassHit, bool*> earliestHit = std::make_pair(CompassHit(), nullptr);
-		for(unsigned int i=startIndex; i<m_datafiles.size(); i++)
+		for(unsigned int i=m_startIndex; i<m_datafiles.size(); i++)
 		{
 			if(m_datafiles[i].CheckHitHasBeenUsed())
 				m_datafiles[i].GetNextHit();
 	
 			if(m_datafiles[i].IsEOF())
 			{
-				if(i == startIndex)
-					startIndex++;
+				if(i == m_startIndex)
+					m_startIndex++;
 				continue;
 			}
-			else if(i == startIndex)
+			else if(i == m_startIndex)
 			{
 				earliestHit = std::make_pair(m_datafiles[i].GetCurrentHit(), m_datafiles[i].GetUsedFlagPtr());
 			} 
@@ -153,7 +142,7 @@ namespace EventBuilder {
 	
 		if(earliestHit.second == nullptr)
 			return false; //Make sure that there actually was a hit
-		hit = earliestHit.first;
+		m_hit = earliestHit.first;
 		*earliestHit.second = true;
 		return true;
 	}
@@ -163,15 +152,15 @@ namespace EventBuilder {
 		TFile* output = TFile::Open(name.c_str(), "RECREATE");
 		TTree* outtree = new TTree("Data", "Data");
 	
-		outtree->Branch("Board", &hit.board);
-		outtree->Branch("Channel", &hit.channel);
-		outtree->Branch("Energy", &hit.energy);
-		outtree->Branch("EnergyShort", &hit.energyShort);
-		outtree->Branch("EnergyCal", &hit.energyCalibrated);
-		outtree->Branch("Timestamp", &hit.timestamp);
-		outtree->Branch("Flags", &hit.flags);
-		outtree->Branch("Ns", &hit.Ns);
-		outtree->Branch("Samples", &hit.samples);
+		outtree->Branch("Board", &m_hit.board);
+		outtree->Branch("Channel", &m_hit.channel);
+		outtree->Branch("Energy", &m_hit.energy);
+		outtree->Branch("EnergyShort", &m_hit.energyShort);
+		outtree->Branch("EnergyCal", &m_hit.energyCalibrated);
+		outtree->Branch("Timestamp", &m_hit.timestamp);
+		outtree->Branch("Flags", &m_hit.flags);
+		outtree->Branch("Ns", &m_hit.Ns);
+		outtree->Branch("Samples", &m_hit.samples);
 	
 		if(!m_smap.IsSet())
 		{
@@ -187,7 +176,7 @@ namespace EventBuilder {
 			return;
 		}
 	
-		startIndex = 0; //Reset the startIndex
+		m_startIndex = 0; //Reset the startIndex
 
 		unsigned int count = 0, flush = m_totalHits*m_progressFraction, flush_count = 0;
 		if(flush == 0)
@@ -215,10 +204,11 @@ namespace EventBuilder {
 		output->Close();
 	}
 	
-	void CompassRun::Convert2SortedRoot(const std::string& name, double window) {
+	void CompassRun::Convert2SortedRoot(const std::string& name) {
 		TFile* output = TFile::Open(name.c_str(), "RECREATE");
 		TTree* outtree = new TTree("SortTree", "SortTree");
 	
+		std::vector<DPPChannel> event;
 		outtree->Branch("event", &event);
 	
 		if(!m_smap.IsSet())
@@ -235,8 +225,8 @@ namespace EventBuilder {
 		}
 	
 	
-		startIndex = 0;
-		SlowSort coincidizer(window);
+		m_startIndex = 0;
+		SlowSort coincidizer(m_params.slowCoincidenceWindow);
 		bool killFlag = false;
 
 		uint64_t count = 0, flush = m_totalHits*0.01, flush_count = 0;
@@ -259,7 +249,7 @@ namespace EventBuilder {
 				killFlag = true;
 			}
 			else
-				coincidizer.AddHitToEvent(hit);
+				coincidizer.AddHitToEvent(m_hit);
 	
 			if(coincidizer.IsEventReady())
 			{

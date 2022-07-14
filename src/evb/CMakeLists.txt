@@ -28,6 +28,9 @@ target_sources(EventBuilderCore PRIVATE
     SlowSort.cpp
     CompassRun.cpp
     SlowSort.h
+    EVBParameters.h
+    EVBWorkspace.h
+    EVBWorkspace.cpp
 )
 
 target_link_libraries(EventBuilderCore PUBLIC

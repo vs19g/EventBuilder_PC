@@ -34,9 +34,6 @@ public:
 	void DisplayScaler(const char* file);
 	void SaveConfig(const char* file);
 	void LoadConfig(const char* file);
-	void UpdateWorkdir();
-	void UpdateSMap();
-	void UpdateScaler();
 	void RunMerge(const char* dir, const char* file);
 	void DisableAllInput();
 	void EnableAllInput();
@@ -75,7 +72,8 @@ private:
 
 	TGFileInfo *fInfo;
 
-	EventBuilder::EVBApp fBuilder;
+	EventBuilder::EVBApp m_builder;
+	EventBuilder::EVBParameters m_params;
 
 	int counter;
 	UInt_t MAIN_W, MAIN_H;
