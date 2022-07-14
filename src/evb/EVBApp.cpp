@@ -9,6 +9,7 @@
 #include "EVBApp.h"
 #include "CompassRun.h"
 #include "SlowSort.h"
+#include "yaml-cpp/yaml.h"
 
 namespace EventBuilder {
 	
@@ -47,6 +48,33 @@ namespace EventBuilder {
 	bool EVBApp::ReadConfigFile(const std::string& fullpath) 
 	{
 		EVB_INFO("Reading in EVB configuration from file {0}...", fullpath);
+
+		YAML::Node data;
+		try
+		{
+			data = YAML::LoadFile(fullpath);
+		}
+		catch(YAML::ParserException& e)
+		{
+			EVB_ERROR("Read of EVB config failed, unable to open input file!");
+			return false;
+		}
+		
+		m_params.workspaceDir = data["WorkspaceDir"].as<std::string>();
+		m_params.scalerFile = data["ScalerFile"].as<std::string>();
+		m_params.timeShiftFile = data["TimeShiftFile"].as<std::string>();
+		m_params.slowCoincidenceWindow = data["SlowCoincidenceWindow(ps)"].as<double>();
+		m_params.runMin = data["MinRun"].as<int>();
+		m_params.runMax = data["MaxRun"].as<int>();
+		m_params.bufferSize = data["BufferSize(hits)"].as<size_t>();
+
+		m_workspace.reset(new EVBWorkspace(m_params.workspaceDir));
+		if(!m_workspace->IsValid())
+		{
+			EVB_ERROR("Unable to process input configuration due to bad workspace.");
+			return false;
+		}
+		/*
 		std::ifstream input(fullpath);
 		if(!input.is_open()) 
 		{
@@ -80,7 +108,7 @@ namespace EventBuilder {
 		input>>junk>>m_params.bufferSize;
 	
 		input.close();
-	
+		*/
 		EVB_INFO("Successfully loaded EVB config.");
 	
 		return true;
@@ -96,7 +124,20 @@ namespace EventBuilder {
 			EVB_WARN("Failed to write to config to file {0}, unable to open file!", fullpath);
 			return;
 		}
-	
+
+		YAML::Emitter yamlStream;
+		yamlStream << YAML::BeginMap;
+		yamlStream << YAML::Key << "WorkspaceDir" << YAML::Value << m_params.workspaceDir;
+		yamlStream << YAML::Key << "ScalerFile" << YAML::Value <<  m_params.scalerFile;
+		yamlStream << YAML::Key << "TimeShiftFile" << YAML::Value << m_params.timeShiftFile;
+		yamlStream << YAML::Key << "SlowCoincidenceWindow(ps)" << YAML::Value << m_params.slowCoincidenceWindow;
+		yamlStream << YAML::Key << "MinRun" << YAML::Value << m_params.runMin;
+		yamlStream << YAML::Key << "MaxRun" << YAML::Value << m_params.runMax;
+		yamlStream << YAML::Key << "BufferSize(hits)" << YAML::Value << m_params.bufferSize;
+		yamlStream << YAML::EndMap;
+
+		output << yamlStream.c_str();
+		/*	
 		output<<"-------Data Location----------"<<std::endl;
 		output<<"WorkspaceDirectory: "<<m_params.workspaceDir<<std::endl;
 		output<<"-------------------------------"<<std::endl;
@@ -112,7 +153,7 @@ namespace EventBuilder {
 		output<<"MaxRun: "<<m_params.runMax<<std::endl;
 		output<<"BufferSize: "<<m_params.bufferSize<<std::endl;
 		output<<"-------------------------------"<<std::endl;
-	
+		*/
 		output.close();
 	
 		EVB_INFO("Successfully wrote config to file.");
