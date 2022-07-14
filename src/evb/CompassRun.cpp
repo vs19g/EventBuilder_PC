@@ -108,17 +108,13 @@ namespace EventBuilder {
 	
 	/*
 		GetHitsFromFiles() is the function which actually retrieves and sorts the data from the individual
-		files. There are several tricks which allow this to happen. First is that, after sorting, it is impossible
-		to determine which file the data originally came from (short of parsing the name of the file against board/channel).
-		However, we need to let the file know that we want it to pull the next hit. To do this, a pointer to the UsedFlag of the file
-		is retrieved along with the data. This flag is flipped so that on the next hit cycle a new hit is pulled. Second is the use
-		of a rolling start index. Once a file has gone EOF, we no longer need it. If this is the first file in the list, we can just skip
+		files. Once a file has gone EOF, we no longer need it. If this is the first file in the list, we can just skip
 		that index all together. In this way, the loop can go from N times to N-1 times.
 	*/
 	bool CompassRun::GetHitsFromFiles()
 	{
 	
-		std::pair<CompassHit, bool*> earliestHit = std::make_pair(CompassHit(), nullptr);
+		CompassFile* earliestHit = nullptr;
 		for(unsigned int i=m_startIndex; i<m_datafiles.size(); i++)
 		{
 			if(m_datafiles[i].CheckHitHasBeenUsed())
@@ -131,19 +127,15 @@ namespace EventBuilder {
 				continue;
 			}
 			else if(i == m_startIndex)
-			{
-				earliestHit = std::make_pair(m_datafiles[i].GetCurrentHit(), m_datafiles[i].GetUsedFlagPtr());
-			} 
-			else if(m_datafiles[i].GetCurrentHit().timestamp < earliestHit.first.timestamp)
-			{
-				earliestHit = std::make_pair(m_datafiles[i].GetCurrentHit(), m_datafiles[i].GetUsedFlagPtr());
-			}
+				earliestHit = &m_datafiles[i];
+			else if(m_datafiles[i].GetCurrentHit().timestamp < earliestHit->GetCurrentHit().timestamp)
+				earliestHit = &m_datafiles[i];
 		}
 	
-		if(earliestHit.second == nullptr)
+		if(earliestHit == nullptr)
 			return false; //Make sure that there actually was a hit
-		m_hit = earliestHit.first;
-		*earliestHit.second = true;
+		m_hit = earliestHit->GetCurrentHit();
+		earliestHit->SetHitHasBeenUsed();
 		return true;
 	}
 	

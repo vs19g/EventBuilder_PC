@@ -57,6 +57,12 @@ namespace EventBuilder {
 	
 		std::getline(input, junk);
 		input>>junk>>m_params.workspaceDir;
+		m_workspace.reset(new EVBWorkspace(m_params.workspaceDir));
+		if(!m_workspace->IsValid())
+		{
+			EVB_ERROR("Unable to process new parameters due to bad workspace");
+			return false;
+		}
 		input>>junk;
 		std::getline(input, junk);
 		std::getline(input, junk);
