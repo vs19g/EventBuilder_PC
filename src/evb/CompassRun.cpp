@@ -196,29 +196,30 @@ namespace EventBuilder {
 		output->Close();
 	}
 	
-	void CompassRun::Convert2SortedRoot(const std::string& name) {
+	void CompassRun::Convert2SortedRoot(const std::string& name) 
+	{
 		TFile* output = TFile::Open(name.c_str(), "RECREATE");
 		TTree* outtree = new TTree("SortTree", "SortTree");
 	
-		std::vector<DPPChannel> event;
+		CoincEvent event;
 		outtree->Branch("event", &event);
 	
 		if(!m_smap.IsSet())
 		{
-			std::cerr<<"Bad shift map at CompassRun::Convert()."<<std::endl;
-			std::cerr<<"Shifts will be locked to 0"<<std::endl;
+            EVB_INFO("No shift map, passed, running without timestamp shifts");
 		}
 	
 		SetScalers();
 	
-		if(!GetBinaryFiles()) {
-			std::cerr<<"Unable to open a file!"<<std::endl;
+		if(!GetBinaryFiles()) 
+        {
+            EVB_WARN("No binary files found, skipping this run");
 			return;
 		}
 	
 	
 		m_startIndex = 0;
-		SlowSort coincidizer(m_params.slowCoincidenceWindow);
+		SlowSort coincidizer(m_params.slowCoincidenceWindow, m_params.channelMapFile);
 		bool killFlag = false;
 
 		uint64_t count = 0, flush = m_totalHits*0.01, flush_count = 0;

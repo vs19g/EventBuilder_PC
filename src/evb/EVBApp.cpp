@@ -61,6 +61,7 @@ namespace EventBuilder {
 		}
 		
 		m_params.workspaceDir = data["WorkspaceDir"].as<std::string>();
+		m_params.channelMapFile = data["ChannelMap"].as<std::string>();
 		m_params.scalerFile = data["ScalerFile"].as<std::string>();
 		m_params.timeShiftFile = data["TimeShiftFile"].as<std::string>();
 		m_params.slowCoincidenceWindow = data["SlowCoincidenceWindow(ps)"].as<double>();
@@ -74,41 +75,6 @@ namespace EventBuilder {
 			EVB_ERROR("Unable to process input configuration due to bad workspace.");
 			return false;
 		}
-		/*
-		std::ifstream input(fullpath);
-		if(!input.is_open()) 
-		{
-			EVB_WARN("Read of EVB config failed, unable to open input file!");
-			return false;
-		}
-		std::string junk;
-	
-		std::getline(input, junk);
-		input>>junk>>m_params.workspaceDir;
-		m_workspace.reset(new EVBWorkspace(m_params.workspaceDir));
-		if(!m_workspace->IsValid())
-		{
-			EVB_ERROR("Unable to process new parameters due to bad workspace");
-			return false;
-		}
-		input>>junk;
-		std::getline(input, junk);
-		std::getline(input, junk);
-		input>>junk>>m_params.scalerFile;
-		input>>junk;
-		std::getline(input, junk);
-		std::getline(input, junk);
-		input>>junk>>m_params.timeShiftFile;
-		input>>junk>>m_params.slowCoincidenceWindow;
-		input>>junk;
-		std::getline(input, junk);
-		std::getline(input, junk);
-		input>>junk>>m_params.runMin;
-		input>>junk>>m_params.runMax;
-		input>>junk>>m_params.bufferSize;
-	
-		input.close();
-		*/
 		EVB_INFO("Successfully loaded EVB config.");
 	
 		return true;
@@ -128,6 +94,7 @@ namespace EventBuilder {
 		YAML::Emitter yamlStream;
 		yamlStream << YAML::BeginMap;
 		yamlStream << YAML::Key << "WorkspaceDir" << YAML::Value << m_params.workspaceDir;
+		yamlStream << YAML::Key << "ChannelMap" << YAML::Value << m_params.channelMapFile;
 		yamlStream << YAML::Key << "ScalerFile" << YAML::Value <<  m_params.scalerFile;
 		yamlStream << YAML::Key << "TimeShiftFile" << YAML::Value << m_params.timeShiftFile;
 		yamlStream << YAML::Key << "SlowCoincidenceWindow(ps)" << YAML::Value << m_params.slowCoincidenceWindow;
@@ -137,23 +104,6 @@ namespace EventBuilder {
 		yamlStream << YAML::EndMap;
 
 		output << yamlStream.c_str();
-		/*	
-		output<<"-------Data Location----------"<<std::endl;
-		output<<"WorkspaceDirectory: "<<m_params.workspaceDir<<std::endl;
-		output<<"-------------------------------"<<std::endl;
-		output<<"------Experimental Inputs------"<<std::endl;
-		output<<"ScalerFile: "<<m_params.scalerFile<<std::endl;
-		output<<"-------------------------------"<<std::endl;
-		output<<"-------Timing Information------"<<std::endl;
-		output<<"BoardOffsetFile: "<<m_params.timeShiftFile<<std::endl;
-		output<<"SlowCoincidenceWindow(ps): "<<m_params.slowCoincidenceWindow<<std::endl;
-		output<<"-------------------------------"<<std::endl;
-		output<<"--------Run Information--------"<<std::endl;
-		output<<"MinRun: "<<m_params.runMin<<std::endl;
-		output<<"MaxRun: "<<m_params.runMax<<std::endl;
-		output<<"BufferSize: "<<m_params.bufferSize<<std::endl;
-		output<<"-------------------------------"<<std::endl;
-		*/
 		output.close();
 	
 		EVB_INFO("Successfully wrote config to file.");

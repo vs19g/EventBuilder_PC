@@ -12,6 +12,7 @@
 
 #include "CompassHit.h"
 #include "evbdict/DataStructs.h"
+#include "ChannelMap.h"
 #include <TH2.h>
 
 namespace EventBuilder {
@@ -19,28 +20,29 @@ namespace EventBuilder {
 	class SlowSort
 	{
 	public:
-		SlowSort();
-		SlowSort(double windowSize);
+		SlowSort(double windowSize, const std::string& filename);
 		~SlowSort();
 		inline void SetWindowSize(double window) { coincWindow = window; }
 		bool AddHitToEvent(CompassHit& mhit);
-		std::vector<DPPChannel> GetEvent();
+		CoincEvent GetEvent();
 		inline TH2F* GetEventStats() { return event_stats; }
 		void FlushHitsToEvent(); //For use with *last* hit list
 		inline bool IsEventReady() { return eventFlag; }
 	
 	private:
 		void InitVariableMaps();
-		void Reset();
 		void StartEvent();
 		void ProcessEvent();
 	
 		double coincWindow;
 		std::vector<DPPChannel> hitList;
-		std::vector<DPPChannel> event;
+		CoincEvent event, blank;
 		bool eventFlag;
 		DPPChannel hit;
 	
+		ChannelMap m_chanMap;
+		std::unordered_map<DetType, std::vector<DetectorHit>*> m_varMap;
+
 		double startTime, previousHitTime;
 	
 		TH2F* event_stats;

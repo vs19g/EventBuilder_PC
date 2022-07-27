@@ -48,6 +48,7 @@ namespace EventBuilder {
 		m_size = m_file->tellg();
 		if(m_size == 2) 
 		{
+            m_nHits = 0;
 			m_eofFlag = true;
 		} 
 		else 

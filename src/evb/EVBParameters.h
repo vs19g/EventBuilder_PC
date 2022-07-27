@@ -6,6 +6,7 @@ namespace EventBuilder {
 	struct EVBParameters
 	{
 		std::string workspaceDir = "";
+		std::string channelMapFile = "";
 		std::string timeShiftFile = "";
 		std::string scalerFile = "";
 
@@ -13,7 +14,7 @@ namespace EventBuilder {
 		int runMax = 0;
 
 		double slowCoincidenceWindow = 3.0e6;
-        size_t bufferSize = 2000;
+        	size_t bufferSize = 2000;
 	};
 }
 

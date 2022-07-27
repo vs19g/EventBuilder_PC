@@ -124,6 +124,8 @@ namespace EventBuilder {
     bool EVBWorkspace::UnpackBinaryRunToTemp(int run)
     {
         std::string runfile = GetBinaryRun(run);
+        if(runfile.empty())
+            return false;
         std::string unpack_command = "tar -xzf "+runfile+" --directory "+m_tempDir;
 		int	sys_return = system(unpack_command.c_str());
         if(sys_return == 0)

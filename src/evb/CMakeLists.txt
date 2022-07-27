@@ -33,6 +33,8 @@ target_sources(EventBuilderCore PRIVATE
     EVBParameters.h
     EVBWorkspace.h
     EVBWorkspace.cpp
+    ChannelMap.h
+    ChannelMap.cpp
 )
 
 target_link_libraries(EventBuilderCore PUBLIC

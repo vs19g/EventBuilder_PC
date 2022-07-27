@@ -24,12 +24,14 @@ public:
 	void CloseWindow();
 	void HandleMenuSelection(int id);
 	void DoOpenWorkdir();
+	void DoOpenCMapfile();
 	void DoOpenSMapfile();
 	void DoOpenScalerfile();
 	void DoRun();
 	void HandleTypeSelection(int box, int entry);
 	bool SetParameters();
 	void DisplayWorkdir(const char* dir);
+	void DisplayCMap(const char* file);
 	void DisplaySMap(const char* file);
 	void DisplayScaler(const char* file);
 	void SaveConfig(const char* file);
@@ -42,6 +44,7 @@ public:
 
 	enum WidgetId {
 		WORKDIR,
+		CMAP,
 		SMAP,
 		SCALER,
 		SLOWWIND,
@@ -57,9 +60,10 @@ public:
 	ClassDef(EVBMainFrame, 0);
 
 private:
-	TGTextButton *fRunButton, *fOpenWorkButton, *fOpenSMapButton, *fOpenScalerButton;
+	TGTextButton *fRunButton, *fOpenWorkButton, *fOpenSMapButton, *fOpenScalerButton, *fOpenChannelButton;
 	TGTextEntry *fWorkField;
 	TGTextEntry * fSMapField;
+	TGTextEntry * fCMapField;
 	TGTextEntry *fScalerField;
 	TGComboBox *fTypeBox;
 

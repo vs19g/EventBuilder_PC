@@ -36,6 +36,15 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	WorkFrame->AddFrame(fWorkField, fhints);
 	WorkFrame->AddFrame(fOpenWorkButton, bhints);
 
+	TGHorizontalFrame *ChannelFrame = new TGHorizontalFrame(NameFrame, w, h*0.1);
+	TGLabel* channelLabel = new TGLabel(ChannelFrame, "Channel Map:");
+	fCMapField = new TGTextEntry(ChannelFrame, new TGTextBuffer(120), CMAP);
+	fOpenChannelButton = new TGTextButton(ChannelFrame, "Open");
+	fOpenChannelButton->Connect("Clicked()", "EVBMainFrame", this,"DoOpenCMapfile()");
+	ChannelFrame->AddFrame(channelLabel, lhints);
+	ChannelFrame->AddFrame(fCMapField, fhints);
+	ChannelFrame->AddFrame(fOpenChannelButton, bhints);
+
 	TGHorizontalFrame *SMapFrame = new TGHorizontalFrame(NameFrame, w, h*0.1);
 	TGLabel* smaplabel = new TGLabel(SMapFrame, "Board Shift File:");
 	fSMapField = new TGTextEntry(SMapFrame, new TGTextBuffer(120), SMAP);
@@ -56,6 +65,7 @@ EVBMainFrame::EVBMainFrame(const TGWindow* p, UInt_t w, UInt_t h) :
 	ScalerFrame->AddFrame(fOpenScalerButton, bhints);
 
 	NameFrame->AddFrame(WorkFrame, fhints);
+	NameFrame->AddFrame(ChannelFrame, fhints);
 	NameFrame->AddFrame(SMapFrame, fhints);
 	NameFrame->AddFrame(ScalerFrame, fhints);
 
@@ -173,6 +183,13 @@ void EVBMainFrame::DoOpenSMapfile()
 		DisplaySMap(fInfo->fFilename);
 }
 
+void EVBMainFrame::DoOpenCMapfile()
+{
+	new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
+	if(fInfo->fFilename)
+		DisplayCMap(fInfo->fFilename);
+}
+
 void EVBMainFrame::DoOpenScalerfile()
 {
 	new TGFileDialog(gClient->GetRoot(), this, kFDOpen, fInfo);
@@ -223,6 +240,7 @@ bool EVBMainFrame::SetParameters()
 	m_params.slowCoincidenceWindow = fSlowWindowField->GetNumber();
 	m_params.bufferSize = fBufferSizeField->GetIntNumber();
 	m_params.workspaceDir = fWorkField->GetText();
+	m_params.channelMapFile = fCMapField->GetText();
 	m_params.timeShiftFile = fSMapField->GetText();
 	m_params.scalerFile = fScalerField->GetText();
 
@@ -240,6 +258,12 @@ void EVBMainFrame::DisplayWorkdir(const char* dir)
 void EVBMainFrame::DisplaySMap(const char* file)
 {
 	fSMapField->SetText(file);
+	SetParameters();
+}
+
+void EVBMainFrame::DisplayCMap(const char* file)
+{
+	fCMapField->SetText(file);
 	SetParameters();
 }
 
@@ -264,7 +288,7 @@ void EVBMainFrame::LoadConfig(const char* file)
 	fWorkField->SetText(m_params.workspaceDir.c_str());
 	fSMapField->SetText(m_params.timeShiftFile.c_str());
 	fScalerField->SetText(m_params.scalerFile.c_str());
-	
+	fCMapField->SetText(m_params.channelMapFile.c_str());
 
 	fSlowWindowField->SetNumber(m_params.slowCoincidenceWindow);
 
