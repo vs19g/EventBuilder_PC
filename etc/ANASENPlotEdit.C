@@ -38,11 +38,14 @@ void MyFill(std::unordered_map<std::string, TH1*>& map, const std::string& name,
 	}
 }
 
-void ANASENPlotEdit()
+void ANASENPlotEdit(int runNumber)
 {
 	std::unordered_map<std::string, TH1*> histMap;
-	std::string input_filename = "/mnt/data1/WorkingData/built/run_106.root";
-	std::string output_filename = "/mnt/data1/WorkingData/histograms/run_106.root";
+	std::string input_filename = "~/WorkingData/built/run_"+std::to_string(runNumber)+".root";
+	std::string output_filename = "~/WorkingData/histograms/run_"+std::to_string(runNumber)+".root";
+
+	std::cout<<"Processing data in "<<input_filename<<std::endl;
+	std::cout<<"Writing histograms to "<<output_filename<<std::endl;
 
 	TFile* inputfile = TFile::Open(input_filename.c_str(), "READ");
 	TTree* tree = (TTree*) inputfile->Get("SortTree");
@@ -53,12 +56,26 @@ void ANASENPlotEdit()
 
 	TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 
-	auto nevents = tree->GetEntries();
+	uint64_t nevents = tree->GetEntries();
 	std::cout<<"Total events: "<<nevents<<std::endl;
 	std::string name;
+
+	double percent = 0.05;
+	uint64_t flush_val = nevents * percent;
+	uint64_t flush_count = 0;
+	uint64_t count = 0;
+
+	std::string summary_hist_name = "SummaryHistogram";
 	for(auto i=0; i<nevents; i++)
 	{
-		std::cout<<"\rEvent number "<<i<<" being processed"<<std::flush;
+		count++;
+		if(count == flush_val)
+		{
+			flush_count++;
+			count = 0;
+			std::cout<<"\rPercent of data processed: "<<flush_count*percent*100<<"%"<<std::flush;
+		}
+
 		tree->GetEntry(i);
 		for(int j=0; j<12; j++)
 		{
@@ -66,16 +83,19 @@ void ANASENPlotEdit()
 			{
 				name = "barrel"+std::to_string(j)+"_"+std::to_string(frontup.globalChannel)+"_frontUp";
 				MyFill(histMap,name,4096,0,4096,frontup.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, frontup.globalChannel, frontup.energy);
 			}
 			for(auto& frontdown : event->barrel[j].frontsDown)
 			{
 				name = "barrel"+std::to_string(j)+"_"+std::to_string(frontdown.globalChannel)+"_frontDown";
 				MyFill(histMap,name,4096,0,4096,frontdown.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, frontdown.globalChannel, frontdown.energy);
 			}
 			for(auto& back : event->barrel[j].backs)
 			{
 				name = "barrel"+std::to_string(j)+"_"+std::to_string(back.globalChannel)+"_back";
 				MyFill(histMap,name,4096,0,4096,back.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, back.globalChannel, back.energy);
 				
 			    for(int k=0; k<6; k++)  //loop over barc detectors
 			    {
@@ -98,6 +118,7 @@ void ANASENPlotEdit()
 			{
 				name = "fqqq"+std::to_string(j)+"_"+std::to_string(ring.globalChannel)+"_ring";
 				MyFill(histMap,name,4096,0,4096,ring.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, ring.globalChannel, ring.energy);
 				
 			    for(int k=0; k<6; k++)  //loop over barc detectors
 		        {
@@ -123,6 +144,7 @@ void ANASENPlotEdit()
 			{
 				name = "fqqq"+std::to_string(j)+"_"+std::to_string(wedge.globalChannel)+"_wedge";
 				MyFill(histMap,name,4096,0,4096,wedge.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, wedge.globalChannel, wedge.energy);
 			}
 		}
 		
@@ -136,21 +158,25 @@ void ANASENPlotEdit()
 			{
 				name = "barcUp"+std::to_string(j)+"_"+std::to_string(front.globalChannel)+"_front";
 				MyFill(histMap,name,4096,0,4096,front.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, front.globalChannel, front.energy);
 			}
 			for(auto& back : event->barcUp[j].backs)
 			{
 				name = "barcUp"+std::to_string(j)+"_"+std::to_string(back.globalChannel)+"_back";
 				MyFill(histMap,name,4096,0,4096,back.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, back.globalChannel, back.energy);
 			}
 			for(auto& front : event->barcDown[j].fronts)
 			{
 				name = "barcDown"+std::to_string(j)+"_"+std::to_string(front.globalChannel)+"_front";
 				MyFill(histMap,name,4096,0,4096,front.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, front.globalChannel, front.energy);
 			}
 			for(auto& back : event->barcDown[j].backs)
 			{
 				name = "barcDown"+std::to_string(j)+"_"+std::to_string(back.globalChannel)+"_back";
 				MyFill(histMap,name,4096,0,4096,back.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, back.globalChannel, back.energy);
 			}
 		}
 	}
