@@ -1,6 +1,7 @@
 add_subdirectory(evbdict)
 add_subdirectory(guidict)
 add_subdirectory(evb)
+add_subdirectory(peek)
 
 
 add_executable(EventBuilder)
