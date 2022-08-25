@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 
 
 R__LOAD_LIBRARY(../lib/libEVBDict.so);
@@ -38,23 +39,80 @@ void MyFill(std::unordered_map<std::string, TH1*>& map, const std::string& name,
 	}
 }
 
-void ANASENPlotEdit(int runNumber)
+void TestEventTime(CoincEvent* event)
+{
+	std::vector<double> timeStamps;
+	for(int i=0; i<12; i++)
+	{
+		for(auto& front : event->barrel[i].frontsUp)
+			timeStamps.push_back(front.timestamp);
+		for(auto& front : event->barrel[i].frontsDown)
+			timeStamps.push_back(front.timestamp);
+		for(auto& back : event->barrel[i].backs)
+			timeStamps.push_back(back.timestamp);
+	}
+
+	for(int i=0; i<4; i++)
+	{
+		for(auto& ring : event->fqqq[i].rings)
+			timeStamps.push_back(ring.timestamp);
+		for(auto& wedge : event->fqqq[i].wedges)
+			timeStamps.push_back(wedge.timestamp);
+	}
+
+	for(int i=0; i<6; i++)
+	{
+		for(auto& front : event->barcDown[i].fronts)
+			timeStamps.push_back(front.timestamp);
+		for(auto& front : event->barcUp[i].fronts)
+			timeStamps.push_back(front.timestamp);
+	}
+
+	std::sort(timeStamps.begin(), timeStamps.end());
+
+	double first = timeStamps[0];
+	double last = timeStamps[timeStamps.size() - 1];
+	std::cout<<"First: "<<first<<" Last: "<<last<<" Difference: "<<last-first<<std::endl;
+}
+
+void Run_ANASENPlotEdit(int runNumber)
 {
 	std::unordered_map<std::string, TH1*> histMap;
-	std::string input_filename = "~/WorkingData/built/run_"+std::to_string(runNumber)+".root";
-	std::string output_filename = "~/WorkingData/histograms/run_"+std::to_string(runNumber)+".root";
+	std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::to_string(runNumber)+".root";
+	std::string output_filename = "/media/tandem/Moria/WorkingData/histograms/run_"+std::to_string(runNumber)+".root";
 
 	std::cout<<"Processing data in "<<input_filename<<std::endl;
 	std::cout<<"Writing histograms to "<<output_filename<<std::endl;
 
 	TFile* inputfile = TFile::Open(input_filename.c_str(), "READ");
+	if(inputfile == nullptr || !inputfile->IsOpen())
+	{
+		std::cout<<"Could not find file "<<input_filename<<". Skipping."<<std::endl;
+		delete inputfile;
+		return;
+	}
 	TTree* tree = (TTree*) inputfile->Get("SortTree");
+	if(tree == nullptr)
+	{
+		std::cout<<"No tree named SortTree found inside file "<<input_filename<<". Skipping."<<std::endl;
+		inputfile->Close();
+		delete inputfile;
+		return;
+	}
 
 	CoincEvent* event = new CoincEvent();
 
 	tree->SetBranchAddress("event", &event);
 
 	TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
+	if(outputfile == nullptr)
+	{
+		std::cout<<"Could not find file "<<output_filename<<". Skipping."<<std::endl;
+		inputfile->Close();
+		delete inputfile;
+		return;
+	}
+
 
 	uint64_t nevents = tree->GetEntries();
 	std::cout<<"Total events: "<<nevents<<std::endl;
@@ -77,6 +135,8 @@ void ANASENPlotEdit(int runNumber)
 		}
 
 		tree->GetEntry(i);
+
+		//TestEventTime(event);
 		for(int j=0; j<12; j++)
 		{
 			for(auto& frontup : event->barrel[j].frontsUp)
@@ -84,6 +144,7 @@ void ANASENPlotEdit(int runNumber)
 				name = "barrel"+std::to_string(j)+"_"+std::to_string(frontup.globalChannel)+"_frontUp";
 				MyFill(histMap,name,4096,0,4096,frontup.energy);
 				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, frontup.globalChannel, frontup.energy);
+				
 			}
 			for(auto& frontdown : event->barrel[j].frontsDown)
 			{
@@ -102,12 +163,12 @@ void ANASENPlotEdit(int runNumber)
 			        for(auto& front : event->barcUp[k].fronts)  //loop over barcup fronts
 			        {
 			           name = "barcUp_dE_vs_SX3_E";
-			           MyFill(histMap,name,4096,0,4096,4096,0,4096,back.energy,front.energy);  // plot qqq vs barcup
+			           MyFill(histMap,name,512,0,4096,512,0,4096,back.energy,front.energy);  // plot qqq vs barcup
 			        }
 			        for(auto& front : event->barcDown[k].fronts)  //loop over barcdown fronts
 			        {
 			            name = "barcDown_dE_vs_SX3_E";
-			            MyFill(histMap,name,4096,0,4096,4096,0,4096,back.energy,front.energy);  // plot qqq vs barcdown
+			            MyFill(histMap,name,512,0,4096,512,0,4096,back.energy,front.energy);  // plot qqq vs barcdown
 			        }
 		        }
 			}
@@ -125,13 +186,19 @@ void ANASENPlotEdit(int runNumber)
 			        for(auto& front : event->barcUp[k].fronts)  //loop over barcup fronts
 			        {
 				        name = "barcUp_dE_vs_qqq_E";
-				        MyFill(histMap,name,4096,0,4096,4096,0,4096,ring.energy,front.energy);  // plot qqq vs barcup
+				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcup
+						name = "barcUp_dE_vs_qqq" + std::to_string(j) + "_E";
+						MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);
+						MyFill(histMap, "barcUpID_vs_qqqID", 4, 0, 4, 6, 0, 6, j, k);
 				    }
 				  
 				    for(auto& front : event->barcDown[k].fronts)  //loop over barcdown fronts
 			        {
 				        name = "barcDown_dE_vs_qqq_E";
-				        MyFill(histMap,name,4096,0,4096,4096,0,4096,ring.energy,front.energy);  // plot qqq vs barcdown
+				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcdown
+						name = "barcDown_dE_vs_qqq" + std::to_string(j) + "_E";
+						MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);
+						MyFill(histMap, "barcDownID_vs_qqqID", 4, 0, 4, 6, 0, 6,  j, k);
 				    }
 		        }
 				for(auto& wedge : event->fqqq[j].wedges)
@@ -148,6 +215,29 @@ void ANASENPlotEdit(int runNumber)
 			}
 		}
 		
+		for(int j=1; j<4; j++)  //loop over the QQQ detectors
+		{
+			for(auto& ring : event->fqqq[j].rings)  //loop over the rings
+			{
+				 for(int k=0; k<6; k++)  //loop over barc detectors
+		        {
+			        for(auto& front : event->barcUp[k].fronts)  //loop over barcup fronts
+			        {
+				        name = "barcUp_dE_vs_qqq123_E";
+				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcup
+						name = "barcUp_dE_vs_qqq" + std::to_string(j) + "_E";
+						MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);
+				    }
+				  
+				    for(auto& front : event->barcDown[k].fronts)  //loop over barcdown fronts
+			        {
+				        name = "barcDown_dE_vs_qqq123_E";
+				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcdown
+				    }
+		        }
+			}
+		}
+				
 		for(int j=0; j<6; j++)
 		{
             name = "barcUp"+std::to_string(j)+"_multiplicity";
@@ -179,6 +269,47 @@ void ANASENPlotEdit(int runNumber)
 				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, back.globalChannel, back.energy);
 			}
 		}
+
+		/*
+		for(int j=0; j<6; j++)
+		{
+			std::vector<DetectorHit>& barcDown1 = event->barcDown[j].fronts;
+			std::vector<DetectorHit>& barcUp1 = event->barcUp[j].fronts;
+			for(int k=0; k<6; k++)
+			{
+				std::vector<DetectorHit>& barcDown2 = event->barcDown[k].fronts;
+				std::vector<DetectorHit>& barcUp2 = event->barcUp[k].fronts;
+				for(auto& hit1 : barcDown1)
+				{
+					for(auto& hit2 : barcDown2)
+					{
+						MyFill(histMap, "barcDownID_vs_barcDownID", 6, 0, 6, 6, 0, 6, j, k);
+						name = "barcDown"+std::to_string(j)+"barcDown"+std::to_string(k)+"_time";
+						MyFill(histMap, name, 1000, -5000.0, 5000.0, hit1.timestamp - hit2.timestamp);
+					}
+				}
+				for(auto& hit1 : barcUp1)
+				{
+					for(auto& hit2 : barcUp2)
+					{
+						MyFill(histMap, "barcUpID_vs_barcUpID", 6, 0, 6, 6, 0, 6, j, k);
+						name = "barcUp"+std::to_string(j)+"barcUp"+std::to_string(k)+"_time";
+						MyFill(histMap, name, 1000, -5000.0, 5000.0, hit1.timestamp - hit2.timestamp);
+					}
+				}
+				for(auto& hit1 : barcDown1)
+				{
+					for(auto& hit2 : barcUp2)
+					{
+						MyFill(histMap, "barcUpID_vs_barcDownID", 6, 0, 6, 6, 0, 6, j, k);
+						name = "barcDown"+std::to_string(j)+"barcUp"+std::to_string(k)+"_time";
+						MyFill(histMap, name, 1000, -5000.0, 5000.0, hit1.timestamp - hit2.timestamp);
+					}
+				}
+			}
+		}
+		*/
+
 	}
 	std::cout<<std::endl;
 	inputfile->Close();
@@ -186,4 +317,13 @@ void ANASENPlotEdit(int runNumber)
 	for(auto& iter : histMap)
 		iter.second->Write();
 	outputfile->Close();
+
+	delete inputfile;
+	delete outputfile;
+}
+
+void ANASENPlotEdit(int runMin, int runMax)
+{
+	for(int i=runMin; i<=runMax; i++)
+		Run_ANASENPlotEdit(i);
 }

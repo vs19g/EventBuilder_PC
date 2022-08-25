@@ -43,7 +43,7 @@ namespace EventBuilder {
 		ChannelMap m_chanMap;
 		std::unordered_map<DetType, std::vector<DetectorHit>*> m_varMap;
 
-		double startTime, previousHitTime;
+		double startTime;
 	
 		TH2F* event_stats;
 	

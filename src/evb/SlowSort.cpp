@@ -115,10 +115,10 @@ namespace EventBuilder {
 			startTime = curHit.Timestamp;
 			hitList.push_back(curHit);
 		}
-		else if (curHit.Timestamp < previousHitTime)
-			return false;
 		else if ((curHit.Timestamp - startTime) < coincWindow)
+		{
 			hitList.push_back(curHit);
+		}
 		else
 		{
 			ProcessEvent();

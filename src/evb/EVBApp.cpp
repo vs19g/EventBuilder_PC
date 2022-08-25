@@ -64,7 +64,7 @@ namespace EventBuilder {
 		m_params.channelMapFile = data["ChannelMap"].as<std::string>();
 		m_params.scalerFile = data["ScalerFile"].as<std::string>();
 		m_params.timeShiftFile = data["TimeShiftFile"].as<std::string>();
-		m_params.slowCoincidenceWindow = data["SlowCoincidenceWindow(ps)"].as<double>();
+		m_params.slowCoincidenceWindow = data["SlowCoincidenceWindow(ns)"].as<double>();
 		m_params.runMin = data["MinRun"].as<int>();
 		m_params.runMax = data["MaxRun"].as<int>();
 		m_params.bufferSize = data["BufferSize(hits)"].as<size_t>();
@@ -97,7 +97,7 @@ namespace EventBuilder {
 		yamlStream << YAML::Key << "ChannelMap" << YAML::Value << m_params.channelMapFile;
 		yamlStream << YAML::Key << "ScalerFile" << YAML::Value <<  m_params.scalerFile;
 		yamlStream << YAML::Key << "TimeShiftFile" << YAML::Value << m_params.timeShiftFile;
-		yamlStream << YAML::Key << "SlowCoincidenceWindow(ps)" << YAML::Value << m_params.slowCoincidenceWindow;
+		yamlStream << YAML::Key << "SlowCoincidenceWindow(ns)" << YAML::Value << m_params.slowCoincidenceWindow;
 		yamlStream << YAML::Key << "MinRun" << YAML::Value << m_params.runMin;
 		yamlStream << YAML::Key << "MaxRun" << YAML::Value << m_params.runMax;
 		yamlStream << YAML::Key << "BufferSize(hits)" << YAML::Value << m_params.bufferSize;
