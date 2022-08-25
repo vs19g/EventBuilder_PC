@@ -1,0 +1,3 @@
+Format: assoc_binary_file_name_without_runID scaler_param_name
+NOTE: As of this version, scalers are pure counting parameters (the total events will be counted and saved as a TParameter with the data)
+Data_CH38@V1740D_22131 sipm 

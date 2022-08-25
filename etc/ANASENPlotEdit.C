@@ -75,11 +75,11 @@ void TestEventTime(CoincEvent* event)
 	std::cout<<"First: "<<first<<" Last: "<<last<<" Difference: "<<last-first<<std::endl;
 }
 
-void Run_ANASENPlotEdit(int runNumber)
+void Run_ANASENPlotEdit_AllCombos(int runNumber)
 {
 	std::unordered_map<std::string, TH1*> histMap;
 	std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::to_string(runNumber)+".root";
-	std::string output_filename = "/media/tandem/Moria/WorkingData/histograms/run_"+std::to_string(runNumber)+".root";
+	std::string output_filename = "/media/tandem/Moria/WorkingData/histograms/allCombos/run_"+std::to_string(runNumber)+"_allCombos.root";
 
 	std::cout<<"Processing data in "<<input_filename<<std::endl;
 	std::cout<<"Writing histograms to "<<output_filename<<std::endl;
@@ -225,8 +225,6 @@ void Run_ANASENPlotEdit(int runNumber)
 			        {
 				        name = "barcUp_dE_vs_qqq123_E";
 				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcup
-						name = "barcUp_dE_vs_qqq" + std::to_string(j) + "_E";
-						MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);
 				    }
 				  
 				    for(auto& front : event->barcDown[k].fronts)  //loop over barcdown fronts
@@ -322,8 +320,196 @@ void Run_ANASENPlotEdit(int runNumber)
 	delete outputfile;
 }
 
+void Run_ANASENPlotEdit_LargestEnergy(int runNumber)
+{
+	std::unordered_map<std::string, TH1*> histMap;
+	std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::to_string(runNumber)+".root";
+	std::string output_filename = "/media/tandem/Moria/WorkingData/histograms/run_"+std::to_string(runNumber)+".root";
+
+	std::cout<<"Processing data in "<<input_filename<<std::endl;
+	std::cout<<"Writing histograms to "<<output_filename<<std::endl;
+
+	TFile* inputfile = TFile::Open(input_filename.c_str(), "READ");
+	if(inputfile == nullptr || !inputfile->IsOpen())
+	{
+		std::cout<<"Could not find file "<<input_filename<<". Skipping."<<std::endl;
+		delete inputfile;
+		return;
+	}
+	TTree* tree = (TTree*) inputfile->Get("SortTree");
+	if(tree == nullptr)
+	{
+		std::cout<<"No tree named SortTree found inside file "<<input_filename<<". Skipping."<<std::endl;
+		inputfile->Close();
+		delete inputfile;
+		return;
+	}
+
+	CoincEvent* event = new CoincEvent();
+
+	tree->SetBranchAddress("event", &event);
+
+	TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
+	if(outputfile == nullptr)
+	{
+		std::cout<<"Could not find file "<<output_filename<<". Skipping."<<std::endl;
+		inputfile->Close();
+		delete inputfile;
+		return;
+	}
+
+
+	uint64_t nevents = tree->GetEntries();
+	std::cout<<"Total events: "<<nevents<<std::endl;
+	std::string name;
+
+	double percent = 0.05;
+	uint64_t flush_val = nevents * percent;
+	uint64_t flush_count = 0;
+	uint64_t count = 0;
+
+	std::string summary_hist_name = "SummaryHistogram";
+	for(auto i=0; i<nevents; i++)
+	{
+		count++;
+		if(count == flush_val)
+		{
+			flush_count++;
+			count = 0;
+			std::cout<<"\rPercent of data processed: "<<flush_count*percent*100<<"%"<<std::flush;
+		}
+
+		tree->GetEntry(i);
+
+		//TestEventTime(event);
+		for(int j=0; j<12; j++)
+		{
+			if(!event->barrel[j].frontsUp.empty())
+			{
+				DetectorHit& frontup = event->barrel[j].frontsUp[0];
+				//name = "barrel"+std::to_string(j)+"_"+std::to_string(frontup.globalChannel)+"_frontUp";
+				//MyFill(histMap,name,4096,0,4096,frontup.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, frontup.globalChannel, frontup.energy);
+				
+			}
+			if(!event->barrel[j].frontsDown.empty())
+			{
+				DetectorHit& frontdown = event->barrel[j].frontsDown[0];
+				//name = "barrel"+std::to_string(j)+"_"+std::to_string(frontdown.globalChannel)+"_frontDown";
+				//MyFill(histMap,name,4096,0,4096,frontdown.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, frontdown.globalChannel, frontdown.energy);
+			}
+			if(!event->barrel[j].backs.empty())
+			{
+				DetectorHit& back = event->barrel[j].backs[0];
+				//name = "barrel"+std::to_string(j)+"_"+std::to_string(back.globalChannel)+"_back";
+				//MyFill(histMap,name,4096,0,4096,back.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, back.globalChannel, back.energy);
+				
+			    for(int k=0; k<6; k++)  //loop over barc detectors
+			    {
+			        if(!event->barcUp[k].fronts.empty())  //loop over barcup fronts
+			        {
+						DetectorHit& front = event->barcUp[k].fronts[0];
+			    		name = "barcUp_dE_vs_SX3_E";
+			        	MyFill(histMap,name,512,0,4096,512,0,4096,back.energy,front.energy);  // plot qqq vs barcup
+			        }
+			        if(!event->barcDown[k].fronts.empty())  //loop over barcdown fronts
+			        {
+						DetectorHit& front = event->barcDown[k].fronts[0];
+			            name = "barcDown_dE_vs_SX3_E";
+			            MyFill(histMap,name,512,0,4096,512,0,4096,back.energy,front.energy);  // plot qqq vs barcdown
+			        }
+		        }
+			}
+		}
+		for(int j=0; j<4; j++)  //loop over the QQQ detectors
+		{
+			if(!event->fqqq[j].rings.empty())  //loop over the rings
+			{
+				DetectorHit& ring = event->fqqq[j].rings[0];
+				//name = "fqqq"+std::to_string(j)+"_"+std::to_string(ring.globalChannel)+"_ring";
+				//MyFill(histMap,name,4096,0,4096,ring.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, ring.globalChannel, ring.energy);
+				
+			    for(int k=0; k<6; k++)  //loop over barc detectors
+		        {
+			        if(!event->barcUp[k].fronts.empty())  //loop over barcup fronts
+			        {
+						DetectorHit& front = event->barcUp[k].fronts[0];
+				        name = "barcUp_dE_vs_qqq_E";
+				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcup
+						name = "barcUp_dE_vs_qqq" + std::to_string(j) + "_E";
+						MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);
+						MyFill(histMap, "barcUpID_vs_qqqID", 4, 0, 4, 6, 0, 6, j, k);
+				    }
+				  
+			        if(!event->barcDown[k].fronts.empty())  //loop over barcup fronts
+			        {
+						DetectorHit& front = event->barcDown[k].fronts[0];
+				        name = "barcDown_dE_vs_qqq_E";
+				        MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);  // plot qqq vs barcdown
+						name = "barcDown_dE_vs_qqq" + std::to_string(j) + "_E";
+						MyFill(histMap,name,512,0,4096,512,0,4096,ring.energy,front.energy);
+						MyFill(histMap, "barcDownID_vs_qqqID", 4, 0, 4, 6, 0, 6,  j, k);
+				    }
+		        }
+				if(!event->fqqq[j].wedges.empty())
+			    {
+					DetectorHit& wedge = event->fqqq[j].wedges[0];
+				    name = "fqqq"+std::to_string(j)+"_ring_wedge";
+				    MyFill(histMap,name,4096,0,4096,4096,0,4096,ring.energy,wedge.energy);
+			    }
+		    }
+			if(!event->fqqq[j].wedges.empty())
+			{
+				DetectorHit& wedge = event->fqqq[j].wedges[0];
+				//name = "fqqq"+std::to_string(j)+"_"+std::to_string(wedge.globalChannel)+"_wedge";
+				//MyFill(histMap,name,4096,0,4096,wedge.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, wedge.globalChannel, wedge.energy);
+			}
+		}
+		
+		for(int j=0; j<6; j++)
+		{
+            name = "barcUp"+std::to_string(j)+"_multiplicity";
+            MyFill(histMap, name, 10, 0.0, 10.0, event->barcUp[j].fronts.size());
+            name = "barcDown"+std::to_string(j)+"_multiplicity";
+            MyFill(histMap, name, 10, 0.0, 10.0, event->barcDown[j].fronts.size());
+			if(!event->barcUp[j].fronts.empty())
+			{
+				DetectorHit& front = event->barcUp[j].fronts[0];
+				//name = "barcUp"+std::to_string(j)+"_"+std::to_string(front.globalChannel)+"_front";
+				//MyFill(histMap,name,4096,0,4096,front.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, front.globalChannel, front.energy);
+			}
+			if(!event->barcDown[j].fronts.empty())
+			{
+				DetectorHit& front = event->barcDown[j].fronts[0];
+				//name = "barcDown"+std::to_string(j)+"_"+std::to_string(front.globalChannel)+"_front";
+				//MyFill(histMap,name,4096,0,4096,front.energy);
+				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, front.globalChannel, front.energy);
+			}
+		}
+
+	}
+	std::cout<<std::endl;
+	inputfile->Close();
+	outputfile->cd();
+	for(auto& iter : histMap)
+		iter.second->Write();
+	outputfile->Close();
+
+	delete inputfile;
+	delete outputfile;
+}
+
 void ANASENPlotEdit(int runMin, int runMax)
 {
+	/*
 	for(int i=runMin; i<=runMax; i++)
-		Run_ANASENPlotEdit(i);
+		Run_ANASENPlotEdit_AllCombos(i);
+	*/
+	for(int i=runMin; i<=runMax; i++)
+		Run_ANASENPlotEdit_LargestEnergy(i);
 }
