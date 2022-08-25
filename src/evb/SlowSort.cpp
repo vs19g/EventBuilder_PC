@@ -10,6 +10,11 @@
 #include "SlowSort.h"
 
 namespace EventBuilder {
+
+	static bool SortEnergy(const DetectorHit& i, const DetectorHit& j)
+	{
+		return i.energy > j.energy;
+	}
 	
 	/*Constructor takes input of coincidence window size, and fills sabre channel map*/
 	SlowSort::SlowSort(double windowSize, const std::string& filename) :
@@ -191,6 +196,25 @@ namespace EventBuilder {
 				else
 					iter->second->push_back(dhit);
 			}
+		}
+
+		for(int i=0; i<4; i++)
+		{
+			std::sort(event.fqqq[i].rings.begin(), event.fqqq[i].rings.end(), SortEnergy);
+			std::sort(event.fqqq[i].wedges.begin(), event.fqqq[i].wedges.end(), SortEnergy);
+		}
+
+		for(int i=0; i<12; i++)
+		{
+			std::sort(event.barrel[i].frontsUp.begin(), event.barrel[i].frontsUp.end(), SortEnergy);
+			std::sort(event.barrel[i].frontsDown.begin(), event.barrel[i].frontsDown.end(), SortEnergy);
+			std::sort(event.barrel[i].backs.begin(), event.barrel[i].backs.end(), SortEnergy);
+		}
+
+		for(int i=0; i<6; i++)
+		{
+			std::sort(event.barcUp[i].fronts.begin(), event.barcUp[i].fronts.end(), SortEnergy);
+			std::sort(event.barcDown[i].fronts.begin(), event.barcDown[i].fronts.end(), SortEnergy);
 		}
 	}
 
