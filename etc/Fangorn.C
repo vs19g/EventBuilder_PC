@@ -21,7 +21,6 @@ std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::t
 std::string output_filename = "/media/tandem/Moria/WorkingData/trees/run_"+std::to_string(runNumber)+"_gw.root";
 
 	std::cout<<"Processing data in "<<input_filename<<std::endl;
-	std::cout<<"Writing histograms to "<<output_filename<<std::endl;
 
 	TFile* inputfile = TFile::Open(input_filename.c_str(), "READ");
 	if(inputfile == nullptr || !inputfile->IsOpen())
@@ -44,6 +43,7 @@ tree->SetBranchAddress("event", &event);
 
 	TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 	TTree *outT = new TTree("data","data");
+	std::cout<<"Opening "<<output_filename<<std::endl;
 
 struct dataSX{
 	int Fmult; int Bmult; float Fenergy[4]; float Benergy[4]; int Fnum[4]; int Bnum[4];
@@ -52,10 +52,10 @@ struct dataQ{
 	int Fmult; int Bmult; float Fenergy[16]; float Benergy[16]; int Fnum[16]; int Bnum[16];
 };
 struct dataBarcUp{
-	int Fmult; int Bmult; float Fenergy[32]; int Fnum[32];
+	int Fmult; float Fenergy[32]; int Fnum[32];
 };
 struct dataBarcDown{
-	int Fmult; int Bmult; float Fenergy[32]; int Fnum[32];
+	int Fmult; float Fenergy[32]; int Fnum[32];
 };
 
 dataQ dQ[4];
@@ -238,13 +238,20 @@ outT->Branch("BD5Fenergy",dBD[5].Fenergy,"BD5Fenergy[BD5Fmult]/f");
 
 /**************************************************************************************/
 tree->SetBranchAddress("event",&event);
-uint64_t nevents = tree->GetEntries();
+Long64_t nevents = tree->GetEntries();
+Long64_t jentry;
 
-for (int n=0; n<nevents; n++){
-    tree->GetEntry(n);
-
+for (jentry=0; jentry<nevents; jentry++){
+    tree->GetEntry(jentry);
+	
 /**************************************************************************************/
 // initialise everything
+
+/**************************************************************************************/
+// Call the exterminator! You've got bugs!
+bool ibool = 0;
+/**************************************************************************************/
+if(ibool) std::cout << " entry " << jentry << std::endl;
 
 for (int j=0;j<6;j++){
 	dBD[j].Fmult = 0; dBU[j].Fmult = 0;
@@ -255,9 +262,9 @@ for (int j=0;j<6;j++){
 
 for (i=0;i<12;i++){
 	dSX[i].Fmult = 0; dSX[i].Bmult = 0;
-for(j=0;j<4;j++){
-	dSX[j].Fnum[i] = -1; dSX[j].Bnum[j] = -1;
-	dSX[j].Fenergy[i] = -1.; dSX[j].Benergy[i] = -1.;
+	for(j=0;j<4;j++){
+	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1;
+	dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[i] = -1.;
 }}	
 
 for(i=0; i<4;i++){
@@ -283,17 +290,24 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Pattern is Down ch 0, 2, 5, 7; Up ch 1, 3, 4, 6
 // but the front multiplicity should be for the entire front strip, not the individual ends.
 
+
 for (i=0;i<12;i++){
+	//std::cout << "in SX3 back loop, detector " << i << ", mult = " << dSX[i].Bmult << std::endl;
 	for(auto& back : event->barrel[i].backs){
+	if(ibool)	std::cout << " detector " << i << std::endl;
 		if(back.energy>0){
 			dSX[i].Benergy[dSX[i].Bmult] = back.energy;
+			if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
+			if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
 			auto iter = m_chanMap.FindChannel(back.globalChannel);
 				if(iter == m_chanMap.End()){
 				std::cout << "channel map error" << std::endl;
 				}else{
 				dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
+				if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
 				// dSX[i].Btime[mult] = back.timestamp;
 				dSX[i].Bmult++; // does this work? it should just be an int
+				if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
 	}}}
 	/* for(auto& frontup : event->barrel[i].frontsUp){
 		dSX[i].Fenergy[dSX[i].Fmult] = frontup.energy;
@@ -302,30 +316,40 @@ for (i=0;i<12;i++){
 		dSX[i].Fmult++;
 	} */
 }
-
+if(ibool) std::cout << std::endl;
 // fill QQQs
 for (i=0;i<4;i++){
+	if(ibool) std::cout << "in QQQ ring loop, detector " << i << ", mult = " << dQ[i].Fmult << std::endl;
 	for(auto& ring : event->fqqq[i].rings){
+		if(ibool) std::cout << "QQQ ring " << i << std::endl;
 		if(ring.energy>0){
 			dQ[i].Fenergy[dQ[i].Fmult] = ring.energy;
+			if(ibool) std::cout << "dQ["<<i<<"].Fenergy["<<dQ[i].Fmult<<"] = " << dQ[i].Fenergy[dQ[i].Fmult] << std::endl;
 			auto iter = m_chanMap.FindChannel(ring.globalChannel);
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
 				dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
+				if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
 				//dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
 				dQ[i].Fmult++;
+				if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
 	}}}
 	for(auto& wedge : event->fqqq[i].wedges){
+		if(ibool) std::cout << "QQQ wedge " << i << std::endl;
 		if(wedge.energy>0){
 			dQ[i].Benergy[dQ[i].Bmult] = wedge.energy;
+			if(ibool) std::cout << "dQ["<<i<<"].Benergy["<<dQ[i].Bmult<<"] = " << dQ[i].Benergy[dQ[i].Bmult] << std::endl;
 			auto iter = m_chanMap.FindChannel(wedge.globalChannel);
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
 				dQ[i].Bnum[dQ[i].Bmult] = iter->second.local_channel;
+				if(ibool) std::cout << "dQ["<<i<<"].Bnum["<<dQ[i].Bmult<<"] = " << dQ[i].Bnum[dQ[i].Bmult] << std::endl;
 				//dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
 				dQ[i].Bmult++;
+				if(ibool) std::cout << "W mult after loop = " << dQ[i].Bmult << std::endl;
+
 }}}
 }
 
@@ -361,8 +385,11 @@ for(i=0;i<6;i++){
 
 
 outT->Fill();
+if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete" << "\r" << std::flush;
 } // end of event loop
-
+std::cout << 100 * jentry/nevents << "\% complete" << std::endl;
 inputfile->Close();
 outputfile->Close();
+delete inputfile;
+delete outputfile;
 }
