@@ -18,7 +18,7 @@ R__LOAD_LIBRARY(../lib/libEVBDict.so);
 
 void Fangorn(int runNumber){
 std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::to_string(runNumber)+".root";
-std::string output_filename = "/media/tandem/Moria/WorkingData/histograms/run_"+std::to_string(runNumber)+"_gw.root";
+std::string output_filename = "/media/tandem/Moria/WorkingData/trees/run_"+std::to_string(runNumber)+"_gw.root";
 
 	std::cout<<"Processing data in "<<input_filename<<std::endl;
 	std::cout<<"Writing histograms to "<<output_filename<<std::endl;
@@ -40,7 +40,7 @@ std::string output_filename = "/media/tandem/Moria/WorkingData/histograms/run_"+
 	}
 CoincEvent* event = new CoincEvent();	
 tree->SetBranchAddress("event", &event);
-ChannelMap m_chanMap;
+
 
 	TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 	TTree *outT = new TTree("data","data");
@@ -266,7 +266,7 @@ for(i=0; i<4;i++){
 		dQ[i].Fnum[j] = -1; dQ[i].Bnum[j] = -1;
 		dQ[i].Fenergy[j] = -1.; dQ[i].Benergy[j] = -1.;
 }}
-
+EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 /**************************************************************************************/
 
 // Gordon's tree contains the following:
@@ -291,7 +291,7 @@ for (i=0;i<12;i++){
 				if(iter == m_chanMap.End()){
 				std::cout << "channel map error" << std::endl;
 				}else{
-				dSX[i].Bnum[dSX[i].Bmult] = iter->second.localChannel;
+				dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
 				// dSX[i].Btime[mult] = back.timestamp;
 				dSX[i].Bmult++; // does this work? it should just be an int
 	}}}
@@ -312,7 +312,7 @@ for (i=0;i<4;i++){
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
-				dQ[i].Fnum[dQ[i].Fmult] = iter->second.localChannel;
+				dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
 				//dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
 				dQ[i].Fmult++;
 	}}}
@@ -323,7 +323,7 @@ for (i=0;i<4;i++){
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
-				dQ[i].Bnum[dQ[i].Bmult] = iter->second.localChannel;
+				dQ[i].Bnum[dQ[i].Bmult] = iter->second.local_channel;
 				//dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
 				dQ[i].Bmult++;
 }}}
@@ -338,7 +338,7 @@ for(i=0;i<6;i++){
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
-				dBD[i].Fnum[dBD[i].Fmult] = iter->second.localChannel;
+				dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
 				//dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
 				dBD[i].Fmult++;
 			}}}
@@ -350,7 +350,7 @@ for(i=0;i<6;i++){
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
-				dBU[i].Fnum[dBU[i].Fmult] = iter->second.localChannel;
+				dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
 				//dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
 				dBU[i].Fmult++;
 			}}}
