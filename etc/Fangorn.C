@@ -14,11 +14,11 @@
 #include <unordered_map>
 #include <algorithm>
 
-R__LOAD_LIBRARY(../lib/libEVBDict.so);
+R__LOAD_LIBRARY(../lib/libEVBDict.dylib);
 
 void Fangorn(int runNumber){
-std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::to_string(runNumber)+".root";
-std::string output_filename = "/media/tandem/Moria/WorkingData/trees/run_"+std::to_string(runNumber)+"_gw.root";
+std::string input_filename = "run_"+std::to_string(runNumber)+".root";
+std::string output_filename = "run_"+std::to_string(runNumber)+"_gw.root";
 
 std::cout<<"Processing data in "<<input_filename<<std::endl;
 
@@ -44,15 +44,34 @@ TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 TTree *outT = new TTree("TreeData","TreeData");
 std::cout<<"Opening "<<output_filename<<std::endl;
 
-// ***** definitions *****
-struct dataSX{ int Fmult; int Bmult; float Fenergy[4]; float Benergy[4]; int Fnum[4]; int Bnum[4];}; // members of each detector class
-struct dataQ{ int Fmult; int Bmult; float Fenergy[16]; float Benergy[16]; int Fnum[16]; int Bnum[16];};
-struct dataBarcUp{ int Fmult; float Fenergy[32]; int Fnum[32];};
-struct dataBarcDown{ int Fmult; float Fenergy[32]; int Fnum[32];};
-dataQ dQ[4]; // number of each type of detector
-dataSX dSX[12];
-dataBarcUp dBU[6];
-dataBarcDown dBD[6]; // I think this is actually 5
+// ***** definitions ***** // don't need to write all these to the tree, just global stuff?
+    struct dataSX{
+        int detnum; int Fmult; int Bmult;
+        float Fenergy[4]; float Benergy[4]; // is front 8 though? for near and far?
+        int Fnum[4]; int Bnum[4];
+        float z[4]; float rho[4]; float phi[4];
+    };
+    struct dataQ{
+        int detnum; int Fmult; int Bmult;
+        float Fenergy[16]; float Benergy[16];
+        int Fnum[16]; int Bnum[16];
+        float z[16]; float rho[16]; float phi[16];
+    };
+    struct dataBarcUp{
+        int detnum; int Fmult;
+        float Fenergy[32]; int Fnum[32];
+        float z[32]; float rho[32]; float phi[32];
+    };
+    struct dataBarcDown{
+        int detnum; int Fmult;
+        float Fenergy[32]; int Fnum[32];
+        float z[32]; float rho[32]; float phi[32];
+    };
+        
+    dataQ dQ[4]; // number of each type of detector
+    dataSX dSX[12];
+    dataBarcUp dBU[6];
+    dataBarcDown dBD[6]; // I think this is actually 5
 
 int i, j;
 float SXBenergyMax; int SXBnumMax; int SXBdetMax;
@@ -60,6 +79,8 @@ float QFenergyMax; int QFnumMax; int QFdetMax;
 float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
 float dE; float dEtheta; float dEphi; 
 float E; float Etheta; float Ephi;
+    float BDzoffset = 120.; // mm
+    float BUzoffset = 200.; // mm
 
 
 // ***** output tree *****
@@ -251,24 +272,27 @@ if(ibool) std::cout << " entry " << jentry << std::endl;
 /**************************************************************************************/
 // initialise everything
 for (int j=0;j<6;j++){
-	dBD[j].Fmult = 0; dBU[j].Fmult = 0;
+	dBD[j].Fmult = 0; dBU[j].Fmult = 0; dBU[j].detnum = -1;
 	for (int i=0; i<32;i++){
 		dBD[j].Fenergy[i] = -1.; dBD[j].Fnum[i] = -1;
 		dBU[j].Fenergy[i] = -1.; dBU[j].Fnum[i] = -1;
+        dBU[j].z[i] = -1.; dBU[j].phi[i] = -1000.; dBU[j].rho[i] = -1.;
 }}
 
 for (i=0;i<12;i++){
-	dSX[i].Fmult = 0; dSX[i].Bmult = 0;
+	dSX[i].Fmult = 0; dSX[i].Bmult = 0;dSX[i].detnum = -1;
 	for(j=0;j<4;j++){
 	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1;
 	dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[i] = -1.;
+    dSX[j].z[i] = -1.; dSX[j].phi[i] = -1000.; dSX[j].rho[i] = -1.;
 }}	
 
 for(i=0; i<4;i++){
-	dQ[i].Fmult = 0; dQ[i].Bmult = 0;
+	dQ[i].Fmult = 0; dQ[i].Bmult = 0; dQ[i].detnum = -1;
 	for(j=0;j<16;j++){
 		dQ[i].Fnum[j] = -1; dQ[i].Bnum[j] = -1;
 		dQ[i].Fenergy[j] = -1.; dQ[i].Benergy[j] = -1.;
+        dQ[i].z[j] = -1.; dQ[i].rho[j] = -1; dQ[i].phi[j] = -1000;
 }}
 
 SXBenergyMax = -1.; SXBnumMax = -1; SXBdetMax = -1;
@@ -381,7 +405,16 @@ for(i=0;i<6;i++){
 					BDdetMax = i;
 				}
 				dBD[i].Fmult++;
-			}}}
+			}}} // exit this loop with arrays of size mult, with detector number and strip
+            for(j=0;j<dBD[i].Fmult;j++){
+                if(i==0){ dBD[0].phi[j] = 270;
+                }else if(i==5){ dBD[5].phi[j] = 330;
+                }else{ dBD[i].phi[j] = 270 - (i*60);
+                }
+                dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
+                // +1 mm brings z to the centre of the strip
+            }
+    
 
 	for(auto& front : event->barcUp[i].fronts){
 		if(front.energy>0){
@@ -399,6 +432,14 @@ for(i=0;i<6;i++){
 				}
 				dBU[i].Fmult++;
 			}}}
+    for(j=0;j<dBU[i].Fmult;j++){
+        if(i==0){ dBU[0].phi[j] = 270;
+        }else if(i==5){ dBU[5].phi[j] = 330;
+        }else{ dBU[i].phi[j] = 270 - (i*60);
+        }
+        dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
+    // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
+    }
 }
 /**************************************************************************************/
 // Sorting to get the biggest hit
@@ -422,10 +463,6 @@ if (BUenergyMax>BDenergyMax){
 // phi = arcsin(y/rho), if x>=0;
 // phi = -1*arcsin(y/rho) + pi, if x<0 && y>=0;
 // phi = -1*arcsin(y/rho)
-
-
-
-
 
 
 /**************************************************************************************/
