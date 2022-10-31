@@ -165,7 +165,7 @@ void Run_PhiPhi()
 		{
 			case 0:
 				//QQQ wedge number = iQQQ*16 + local channel
-				nWedge = iQQQ*16 + (15-iter->second.local_channel); //necessary for QQQ0&2
+				nWedge = iQQQ*16 + (15-iter->second.local_channel); //necessary for QQQ0&2 to count CW
 				break;
 			case 1:
 				nWedge = iQQQ*16 + iter->second.local_channel;
@@ -176,7 +176,7 @@ void Run_PhiPhi()
 				break;
 			case 3:
 				iQQQ = 2; //correction for QQQ2&3 swapped cables in good18F
-				nWedge = iQQQ*16 + (15-iter->second.local_channel); //necessary for QQQ0&2
+				nWedge = iQQQ*16 + (15-iter->second.local_channel); //necessary for QQQ0&2 to count CW
 				break;
 		}
 

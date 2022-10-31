@@ -14,11 +14,12 @@
 #include <unordered_map>
 #include <algorithm>
 
-R__LOAD_LIBRARY(../lib/libEVBDict.so);
+//.dylib or .so
+R__LOAD_LIBRARY(../lib/libEVBDict.dylib);
 
 void Fangorn(int runNumber){
-std::string input_filename = "/media/tandem/Moria/WorkingData/built/run_"+std::to_string(runNumber)+".root";
-std::string output_filename = "/media/tandem/Moria/WorkingData/trees/run_"+std::to_string(runNumber)+"_gw.root";
+std::string input_filename = "/Users/theefizzicist/Documents/Projects/18Ne-a-p/WorkingData/built/run_"+std::to_string(runNumber)+".root";
+std::string output_filename = "/Users/theefizzicist/Documents/Projects/18Ne-a-p/WorkingData/trees/run_"+std::to_string(runNumber)+"_gw.root";
 
 std::cout<<"Processing data in "<<input_filename<<std::endl;
 
@@ -46,7 +47,7 @@ std::cout<<"Opening "<<output_filename<<std::endl;
 
 // ***** definitions *****
 struct dataSX{ int Fmult; int Bmult; float Fenergy[4]; float Benergy[4]; int Fnum[4]; int Bnum[4];}; // members of each detector class
-struct dataQ{ int Fmult; int Bmult; float Fenergy[16]; float Benergy[16]; int Fnum[16]; int Bnum[16];};
+struct dataQ{ int Fmult; int Bmult; float Fenergy[16]; float Benergy[16]; int Fnum[16]; int Bnum[16]; float rho[16]; float theta[16]; float phi[16]; }; //Fnum & Bnum are local channel numbers
 struct dataBarcUp{ int Fmult; float Fenergy[32]; int Fnum[32];};
 struct dataBarcDown{ int Fmult; float Fenergy[32]; int Fnum[32];};
 dataQ dQ[4]; // number of each type of detector
@@ -58,8 +59,8 @@ int i, j;
 float SXBenergyMax; int SXBnumMax; int SXBdetMax;
 float QFenergyMax; int QFnumMax; int QFdetMax;
 float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
-float dE; float dEtheta; float dEphi; 
-float E; float Etheta; float Ephi;
+float dE; float dEtheta; float dEphi; float dErho;
+float E; float Etheta; float Ephi; float Erho;
 
 
 // ***** output tree *****
@@ -150,21 +151,34 @@ outT->Branch("SXBnumMax",&SXBnumMax,"SXBnumMax/i"); // ... and its strip number
 outT->Branch("SXBdetMax",&SXBdetMax,"SXBdetMax/i"); // ... and its detector
 
 // QQQ branches
+
 outT->Branch("Q0Fmult",&dQ[0].Fmult,"Q0Fmult/i"); outT->Branch("Q0Bmult",&dQ[0].Bmult,"Q0Bmult/i");
 //outT->Branch("Q0Fnum",dQ[0].Fnum,"Q0Fnum[Q0Fmult]/i"); outT->Branch("Q0Bnum",dQ[0].Bnum,"Q0Bnum[Q0Bmult]/i");
 //outT->Branch("Q0Fenergy",dQ[0].Fenergy,"Q0Fenergy[Q0Fmult]/f"); outT->Branch("Q0Benergy",dQ[0].Benergy,"Q0Benergy[Q0Bmult]/f");
+outT->Branch("Q0rho",&dQ[0].rho,"Q0rho/i"); 
+outT->Branch("Q0theta",&dQ[0].theta,"Q0theta/i");
+outT->Branch("Q0phi",&dQ[0].phi,"Q0phi/i");
 
 outT->Branch("Q1Fmult",&dQ[1].Fmult,"Q1Fmult/i"); outT->Branch("Q1Bmult",&dQ[1].Bmult,"Q1Bmult/i");
 //outT->Branch("Q1Fnum",dQ[1].Fnum,"Q1Fnum[Q1Fmult]/i"); outT->Branch("Q1Bnum",dQ[1].Bnum,"Q1Bnum[Q1Bmult]/i");
 //outT->Branch("Q1Fenergy",dQ[1].Fenergy,"Q1Fenergy[Q1Fmult]/f"); outT->Branch("Q1Benergy",dQ[1].Benergy,"Q1Benergy[Q1Bmult]/f");
+outT->Branch("Q0rho",&dQ[1].rho,"Q0rho/i"); 
+outT->Branch("Q0theta",&dQ[1].theta,"Q0theta/i");
+outT->Branch("Q0phi",&dQ[1].phi,"Q0phi/i");
 
 outT->Branch("Q2Fmult",&dQ[2].Fmult,"Q2Fmult/i"); outT->Branch("Q2Bmult",&dQ[2].Bmult,"Q2Bmult/i");
 //outT->Branch("Q2Fnum",dQ[2].Fnum,"Q2Fnum[Q2Fmult]/i"); outT->Branch("Q2Bnum",dQ[2].Bnum,"Q2Bnum[Q2Bmult]/i");
 //outT->Branch("Q2Fenergy",dQ[2].Fenergy,"Q2Fenergy[Q2Fmult]/f"); outT->Branch("Q2Benergy",dQ[2].Benergy,"Q2Benergy[Q2Bmult]/f");
+outT->Branch("Q0rho",&dQ[0].rho,"Q0rho/i"); 
+outT->Branch("Q0theta",&dQ[0].theta,"Q0theta/i");
+outT->Branch("Q0phi",&dQ[0].phi,"Q0phi/i");
 
 outT->Branch("Q3Fmult",&dQ[3].Fmult,"Q3Fmult/i"); outT->Branch("Q3Bmult",&dQ[3].Bmult,"Q3Bmult/i");
 //outT->Branch("Q3Fnum",dQ[3].Fnum,"Q3Fnum[Q3Fmult]/i"); outT->Branch("Q3Bnum",dQ[3].Bnum,"Q3Bnum[Q3Bmult]/i");
 //outT->Branch("Q3Fenergy",dQ[3].Fenergy,"Q3Fenergy[Q3Fmult]/f"); outT->Branch("Q3Benergy",dQ[3].Benergy,"Q3Benergy[Q3Bmult]/f");
+outT->Branch("Q0rho",&dQ[0].rho,"Q0rho/i"); 
+outT->Branch("Q0theta",&dQ[0].theta,"Q0theta/i");
+outT->Branch("Q0phi",&dQ[0].phi,"Q0phi/i");
 
 outT->Branch("QFenergyMax",&QFenergyMax,"QFenergyMax/f");
 outT->Branch("QFdetMax",&QFdetMax,"QFdetMax/i");
@@ -230,9 +244,11 @@ outT->Branch("BUnumMax",&BUnumMax,"BUnumMax/i"); outT->Branch("BDnumMax",&BDnumM
 outT->Branch("dE",&dE,"dE/f"); // highest dE signal (from any barcelona detector, up or downstream)
 outT->Branch("dEtheta",&dEtheta,"dEtheta/f"); // theta from highest dE
 outT->Branch("dEphi",&dEphi,"dEphi/f"); // phi from highest dE
+outT->Branch("dErho",&dErho,"dErho/f"); // rho from highest dE
 outT->Branch("E",&E,"E/f"); // highest E signal (from any QQQ, for now. )
 outT->Branch("Etheta",&Etheta,"Etheta/f"); // theta from highest E
 outT->Branch("Ephi",&Ephi,"Ephi/f"); // phi from highest E
+outT->Branch("Erho",&Erho,"Erho/f"); // phi from highest E
 
 /**************************************************************************************/
 tree->SetBranchAddress("event",&event);

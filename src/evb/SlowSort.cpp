@@ -198,6 +198,7 @@ namespace EventBuilder {
 			}
 		}
 
+		//first hit (for each detector type) is largest energy
 		for(int i=0; i<4; i++)
 		{
 			std::sort(event.fqqq[i].rings.begin(), event.fqqq[i].rings.end(), SortEnergy);
