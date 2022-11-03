@@ -47,7 +47,7 @@ std::cout<<"Opening "<<output_filename<<std::endl;
 // ***** definitions ***** // don't need to write all these to the tree, just global stuff?
     struct dataSX{
         int detnum; int Fmult; int Bmult;
-        float Fenergy[4]; float Benergy[4]; // is front 8 though? for near and far?
+        float Fenergy[8]; float Benergy[4]; // is front 8 though? for near and far?
         int Fnum[4]; int Bnum[4];
         float z[4]; float rho[4]; float phi[4];
     };
@@ -91,7 +91,11 @@ float E; float Etheta; float Ephi;
 // Then I'd also need a branch for position and a reconstruction. 
 
 // Will need coordinate branches and time
-
+    
+    // This is a condensed method but I can't figure out what happens for multiple detector hits, multiple strip hits in a detector, etc. I guess everything could be an array of 12?
+    //outT->Branch("SX",&sx,"detnum/I:Fmult/I:Bmult/I:Fenergy/F:Benergy/F:Fnum/I:Bnum/I");
+    // *********
+    
 outT->Branch("SX0Fmult",&dSX[0].Fmult,"SX0Fmult/i"); outT->Branch("SX0Bmult",&dSX[0].Bmult,"SX0Bmult/i");
 outT->Branch("SX1Fmult",&dSX[1].Fmult,"SX1Fmult/i"); outT->Branch("SX1Bmult",&dSX[1].Bmult,"SX1Bmult/i");
 outT->Branch("SX2Fmult",&dSX[2].Fmult,"SX2Fmult/i"); outT->Branch("SX2Bmult",&dSX[2].Bmult,"SX2Bmult/i");
@@ -265,26 +269,26 @@ for (jentry=0; jentry<nevents; jentry++){
 	
 /**************************************************************************************/
 /***************** Call the exterminator! You've got bugs! ****************************/
-/****************************/ bool ibool = 0; /***************************************/
+/****************************/ bool ibool = 1; /***************************************/
 /**************************************************************************************/
 
 if(ibool) std::cout << " entry " << jentry << std::endl;
 /**************************************************************************************/
 // initialise everything
-for (int j=0;j<6;j++){
-	dBD[j].Fmult = 0; dBU[j].Fmult = 0; dBU[j].detnum = -1;
-	for (int i=0; i<32;i++){
-		dBD[j].Fenergy[i] = -1.; dBD[j].Fnum[i] = -1;
-		dBU[j].Fenergy[i] = -1.; dBU[j].Fnum[i] = -1;
-        dBU[j].z[i] = -1.; dBU[j].phi[i] = -1000.; dBU[j].rho[i] = -1.;
+for (int i=0;i<6;i++){
+	dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1;
+	for (int j=0; j<32;j++){
+		dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
+		dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
+        dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
 }}
 
 for (i=0;i<12;i++){
-	dSX[i].Fmult = 0; dSX[i].Bmult = 0;dSX[i].detnum = -1;
+	dSX[i].Fmult = 0; dSX[i].Bmult = 0; dSX[i].detnum = -1;
 	for(j=0;j<4;j++){
-	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1;
-	dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[i] = -1.;
-    dSX[j].z[i] = -1.; dSX[j].phi[i] = -1000.; dSX[j].rho[i] = -1.;
+	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1; // fronts will need to change (frontup/front down)
+        dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[j] = -1.;
+    dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
 }}	
 
 for(i=0; i<4;i++){
@@ -321,19 +325,19 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 
 
 for (i=0;i<12;i++){
-	//std::cout << "in SX3 back loop, detector " << i << ", mult = " << dSX[i].Bmult << std::endl;
+	if(ibool) std::cout << "in SX3 back loop, detector " << i << ", mult = " << dSX[i].Bmult << std::endl;
 	for(auto& back : event->barrel[i].backs){
-	if(ibool)	std::cout << " detector " << i << std::endl;
+	if(ibool) std::cout << " detector " << i << std::endl;
 		if(back.energy>0){
 			dSX[i].Benergy[dSX[i].Bmult] = back.energy;
 			if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
 			if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
 			auto iter = m_chanMap.FindChannel(back.globalChannel);
 				if(iter == m_chanMap.End()){
-				std::cout << "channel map error" << std::endl;
+                    std::cout << "channel map error" << std::endl;
 				}else{
-				dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
-				if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
+                    dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
+                    if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
 				// dSX[i].Btime[mult] = back.timestamp;
 				dSX[i].Bmult++; 
 				if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
@@ -441,6 +445,8 @@ for(i=0;i<6;i++){
     // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
     }
 }
+    
+
 /**************************************************************************************/
 // Sorting to get the biggest hit
 // dE = largest of Barc up or Barc down
