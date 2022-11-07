@@ -13,6 +13,7 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include "Fangorn.h"
 
 R__LOAD_LIBRARY(../lib/libEVBDict.dylib);
 
@@ -50,22 +51,26 @@ std::cout<<"Opening "<<output_filename<<std::endl;
         float Fenergy[8]; float Benergy[4]; // is front 8 though? for near and far?
         int Fnum[4]; int Bnum[4];
         float z[4]; float rho[4]; float phi[4];
+        long Btime[4]; long Ftime[8];
     };
     struct dataQ{
         int detnum; int Fmult; int Bmult;
         float Fenergy[16]; float Benergy[16];
         int Fnum[16]; int Bnum[16];
         float z[16]; float rho[16]; float phi[16];
+        long Btime[16]; long Ftime[16];
     };
     struct dataBarcUp{
         int detnum; int Fmult;
         float Fenergy[32]; int Fnum[32];
         float z[32]; float rho[32]; float phi[32];
+        long Ftime[32];
     };
     struct dataBarcDown{
         int detnum; int Fmult;
         float Fenergy[32]; int Fnum[32];
         float z[32]; float rho[32]; float phi[32];
+        long Ftime[32];
     };
         
     dataQ dQ[4]; // number of each type of detector
@@ -79,188 +84,14 @@ float QFenergyMax; int QFnumMax; int QFdetMax;
 float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
 float dE; float dEtheta; float dEphi; 
 float E; float Etheta; float Ephi;
-    float BDzoffset = 120.; // mm
-    float BUzoffset = 200.; // mm
+    float BDzoffset = 120.; // mm, placeholder
+    float BUzoffset = 200.; // mm, placeholder
+    float Qz = 50.; // mm, placeholder
 
 
-// ***** output tree *****
-
-// SX3 branches
-// SX3 fronts will need to be dealt with in a different code if the front strips are a
-// combination of the upstream and downstream ends... maybe. 
-// Then I'd also need a branch for position and a reconstruction. 
-
-// Will need coordinate branches and time
-    
-    // This is a condensed method but I can't figure out what happens for multiple detector hits, multiple strip hits in a detector, etc. I guess everything could be an array of 12?
-    //outT->Branch("SX",&sx,"detnum/I:Fmult/I:Bmult/I:Fenergy/F:Benergy/F:Fnum/I:Bnum/I");
-    // *********
-    
-outT->Branch("SX0Fmult",&dSX[0].Fmult,"SX0Fmult/i"); outT->Branch("SX0Bmult",&dSX[0].Bmult,"SX0Bmult/i");
-outT->Branch("SX1Fmult",&dSX[1].Fmult,"SX1Fmult/i"); outT->Branch("SX1Bmult",&dSX[1].Bmult,"SX1Bmult/i");
-outT->Branch("SX2Fmult",&dSX[2].Fmult,"SX2Fmult/i"); outT->Branch("SX2Bmult",&dSX[2].Bmult,"SX2Bmult/i");
-outT->Branch("SX3Fmult",&dSX[3].Fmult,"SX3Fmult/i"); outT->Branch("SX3Bmult",&dSX[3].Bmult,"SX3Bmult/i");
-outT->Branch("SX4Fmult",&dSX[4].Fmult,"SX4Fmult/i"); outT->Branch("SX4Bmult",&dSX[4].Bmult,"SX4Bmult/i");
-outT->Branch("SX5Fmult",&dSX[5].Fmult,"SX5Fmult/i"); outT->Branch("SX5Bmult",&dSX[5].Bmult,"SX5Bmult/i");
-outT->Branch("SX6Fmult",&dSX[6].Fmult,"SX6Fmult/i"); outT->Branch("SX6Bmult",&dSX[6].Bmult,"SX6Bmult/i");
-outT->Branch("SX7Fmult",&dSX[7].Fmult,"SX7Fmult/i"); outT->Branch("SX7Bmult",&dSX[7].Bmult,"SX7Bmult/i");
-outT->Branch("SX8Fmult",&dSX[8].Fmult,"SX8Fmult/i"); outT->Branch("SX8Bmult",&dSX[8].Bmult,"SX8Bmult/i");
-outT->Branch("SX9Fmult",&dSX[9].Fmult,"SX9Fmult/i"); outT->Branch("SX9Bmult",&dSX[9].Bmult,"SX9Bmult/i");
-outT->Branch("SX10Fmult",&dSX[10].Fmult,"SX10Fmult/i"); outT->Branch("SX10Bmult",&dSX[10].Bmult,"SX10Bmult/i");
-outT->Branch("SX11Fmult",&dSX[11].Fmult,"SX11Fmult/i"); outT->Branch("SX11Bmult",&dSX[11].Bmult,"SX11Bmult/i");
-
-/*outT->Branch("SX0Fnum",dSX[0].Fnum,"SX0Fnum[SX0Fmult]/i");
-outT->Branch("SX0Bnum",dSX[0].Bnum,"SX0Bnum[SX0Bmult]/i");
-outT->Branch("SX0Fenergy",dSX[0].Fenergy,"SX0Fenergy[SX0Fmult]/f");
-outT->Branch("SX0Benergy",dSX[0].Benergy,"SX0Benergy[SX0Bmult]/f");
-
-outT->Branch("SX1Fnum",dSX[1].Fnum,"SX1Fnum[SX1Fmult]/i");
-outT->Branch("SX1Bnum",dSX[1].Bnum,"SX1Bnum[SX1Bmult]/i");
-outT->Branch("SX1Fenergy",dSX[1].Fenergy,"SX1Fenergy[SX1Fmult]/f");
-outT->Branch("SX1Benergy",dSX[1].Benergy,"SX1Benergy[SX1Bmult]/f");
-
-outT->Branch("SX2Fnum",dSX[2].Fnum,"SX2Fnum[SX2Fmult]/i");
-outT->Branch("SX2Bnum",dSX[2].Bnum,"SX2Bnum[SX2Bmult]/i");
-outT->Branch("SX2Fenergy",dSX[2].Fenergy,"SX2Fenergy[SX2Fmult]/f");
-outT->Branch("SX2Benergy",dSX[2].Benergy,"SX2Benergy[SX2Bmult]/f");
-
-outT->Branch("SX3Fnum",dSX[3].Fnum,"SX3Fnum[SX3Fmult]/i");
-outT->Branch("SX3Bnum",dSX[3].Bnum,"SX3Bnum[SX3Bmult]/i");
-outT->Branch("SX3Fenergy",dSX[3].Fenergy,"SX3Fenergy[SX3Fmult]/f");
-outT->Branch("SX3Benergy",dSX[3].Benergy,"SX3Benergy[SX3Bmult]/f");
-
-outT->Branch("SX4Fnum",dSX[4].Fnum,"SX4Fnum[SX4Fmult]/i");
-outT->Branch("SX4Bnum",dSX[4].Bnum,"SX4Bnum[SX4Bmult]/i");
-outT->Branch("SX4Fenergy",dSX[4].Fenergy,"SX4Fenergy[SX4Fmult]/f");
-outT->Branch("SX4Benergy",dSX[4].Benergy,"SX4Benergy[SX4Bmult]/f");
-
-outT->Branch("SX5Fnum",dSX[5].Fnum,"SX5Fnum[SX5Fmult]/i");
-outT->Branch("SX5Bnum",dSX[5].Bnum,"SX5Bnum[SX5Bmult]/i");
-outT->Branch("SX5Fenergy",dSX[5].Fenergy,"SX5Fenergy[SX5Fmult]/f");
-outT->Branch("SX5Benergy",dSX[5].Benergy,"SX5Benergy[SX5Bmult]/f");
-
-outT->Branch("SX6Fnum",dSX[6].Fnum,"SX6Fnum[SX6Fmult]/i");
-outT->Branch("SX6Bnum",dSX[6].Bnum,"SX6Bnum[SX6Bmult]/i");
-outT->Branch("SX6Fenergy",dSX[6].Fenergy,"SX6Fenergy[SX6Fmult]/f");
-outT->Branch("SX6Benergy",dSX[6].Benergy,"SX6Benergy[SX6Bmult]/f");
-
-outT->Branch("SX7Fnum",dSX[7].Fnum,"SX7Fnum[SX7Fmult]/i");
-outT->Branch("SX7Bnum",dSX[7].Bnum,"SX7Bnum[SX7Bmult]/i");
-outT->Branch("SX7Fenergy",dSX[7].Fenergy,"SX7Fenergy[SX7Fmult]/f");
-outT->Branch("SX7Benergy",dSX[7].Benergy,"SX7Benergy[SX7Bmult]/f");
-
-outT->Branch("SX8Fnum",dSX[8].Fnum,"SX8Fnum[SX8Fmult]/i");
-outT->Branch("SX8Bnum",dSX[8].Bnum,"SX8Bnum[SX8Bmult]/i");
-outT->Branch("SX8Fenergy",dSX[8].Fenergy,"SX8Fenergy[SX8Fmult]/f");
-outT->Branch("SX8Benergy",dSX[8].Benergy,"SX8Benergy[SX8Bmult]/f");
-
-outT->Branch("SX9Fnum",dSX[9].Fnum,"SX9Fnum[SX9Fmult]/i");
-outT->Branch("SX9Bnum",dSX[9].Bnum,"SX9Bnum[SX9Bmult]/i");
-outT->Branch("SX9Fenergy",dSX[9].Fenergy,"SX9Fenergy[SX9Fmult]/f");
-outT->Branch("SX9Benergy",dSX[9].Benergy,"SX9Benergy[SX9Bmult]/f");
-
-outT->Branch("SX10Fnum",dSX[10].Fnum,"SX10Fnum[SX10Fmult]/i");
-outT->Branch("SX10Bnum",dSX[10].Bnum,"SX10Bnum[SX10Bmult]/i");
-outT->Branch("SX10Fenergy",dSX[10].Fenergy,"SX10Fenergy[SX10Fmult]/f");
-outT->Branch("SX10Benergy",dSX[10].Benergy,"SX10Benergy[SX10Bmult]/f");
-
-outT->Branch("SX11Fnum",dSX[11].Fnum,"SX11Fnum[SX11Fmult]/i");
-outT->Branch("SX11Bnum",dSX[11].Bnum,"SX11Bnum[SX11Bmult]/i");
-outT->Branch("SX11Fenergy",dSX[11].Fenergy,"SX11Fenergy[SX11Fmult]/f");
-outT->Branch("SX11Benergy",dSX[11].Benergy,"SX11Benergy[SX11Bmult]/f");
-*/
-
-outT->Branch("SXBenergyMax",&SXBenergyMax,"SXBenergyMax/f"); // largest SX3 back energy
-outT->Branch("SXBnumMax",&SXBnumMax,"SXBnumMax/i"); // ... and its strip number
-outT->Branch("SXBdetMax",&SXBdetMax,"SXBdetMax/i"); // ... and its detector
-
-// QQQ branches
-outT->Branch("Q0Fmult",&dQ[0].Fmult,"Q0Fmult/i"); outT->Branch("Q0Bmult",&dQ[0].Bmult,"Q0Bmult/i");
-//outT->Branch("Q0Fnum",dQ[0].Fnum,"Q0Fnum[Q0Fmult]/i"); outT->Branch("Q0Bnum",dQ[0].Bnum,"Q0Bnum[Q0Bmult]/i");
-//outT->Branch("Q0Fenergy",dQ[0].Fenergy,"Q0Fenergy[Q0Fmult]/f"); outT->Branch("Q0Benergy",dQ[0].Benergy,"Q0Benergy[Q0Bmult]/f");
-
-outT->Branch("Q1Fmult",&dQ[1].Fmult,"Q1Fmult/i"); outT->Branch("Q1Bmult",&dQ[1].Bmult,"Q1Bmult/i");
-//outT->Branch("Q1Fnum",dQ[1].Fnum,"Q1Fnum[Q1Fmult]/i"); outT->Branch("Q1Bnum",dQ[1].Bnum,"Q1Bnum[Q1Bmult]/i");
-//outT->Branch("Q1Fenergy",dQ[1].Fenergy,"Q1Fenergy[Q1Fmult]/f"); outT->Branch("Q1Benergy",dQ[1].Benergy,"Q1Benergy[Q1Bmult]/f");
-
-outT->Branch("Q2Fmult",&dQ[2].Fmult,"Q2Fmult/i"); outT->Branch("Q2Bmult",&dQ[2].Bmult,"Q2Bmult/i");
-//outT->Branch("Q2Fnum",dQ[2].Fnum,"Q2Fnum[Q2Fmult]/i"); outT->Branch("Q2Bnum",dQ[2].Bnum,"Q2Bnum[Q2Bmult]/i");
-//outT->Branch("Q2Fenergy",dQ[2].Fenergy,"Q2Fenergy[Q2Fmult]/f"); outT->Branch("Q2Benergy",dQ[2].Benergy,"Q2Benergy[Q2Bmult]/f");
-
-outT->Branch("Q3Fmult",&dQ[3].Fmult,"Q3Fmult/i"); outT->Branch("Q3Bmult",&dQ[3].Bmult,"Q3Bmult/i");
-//outT->Branch("Q3Fnum",dQ[3].Fnum,"Q3Fnum[Q3Fmult]/i"); outT->Branch("Q3Bnum",dQ[3].Bnum,"Q3Bnum[Q3Bmult]/i");
-//outT->Branch("Q3Fenergy",dQ[3].Fenergy,"Q3Fenergy[Q3Fmult]/f"); outT->Branch("Q3Benergy",dQ[3].Benergy,"Q3Benergy[Q3Bmult]/f");
-
-outT->Branch("QFenergyMax",&QFenergyMax,"QFenergyMax/f");
-outT->Branch("QFdetMax",&QFdetMax,"QFdetMax/i");
-outT->Branch("QFnumMax",&QFnumMax,"QFnumMax/i");
-
-// Barcelona upstream branches
-
-outT->Branch("BU0Fmult",&dBU[0].Fmult,"BU0Fmult/i");
-//outT->Branch("BU0Fnum",dBU[0].Fnum,"BU0Fnum[BU0Fmult]/i");
-//outT->Branch("BU0Fenergy",dBU[0].Fenergy,"BU0Fenergy[BU0Fmult]/f");
-
-outT->Branch("BU1Fmult",&dBU[1].Fmult,"BU1Fmult/i");
-//outT->Branch("BU1Fnum",dBU[1].Fnum,"BU1Fnum[BU1Fmult]/i");
-//outT->Branch("BU1Fenergy",dBU[1].Fenergy,"BU1Fenergy[BU1Fmult]/f");
-
-outT->Branch("BU2Fmult",&dBU[2].Fmult,"BU2Fmult/i");
-//outT->Branch("BU2Fnum",dBU[2].Fnum,"BU2Fnum[BU2Fmult]/i");
-//outT->Branch("BU2Fenergy",dBU[2].Fenergy,"BU2Fenergy[BU2Fmult]/f");
-
-outT->Branch("BU3Fmult",&dBU[3].Fmult,"BU3Fmult/i");
-//outT->Branch("BU3Fnum",dBU[3].Fnum,"BU3Fnum[BU3Fmult]/i");
-//outT->Branch("BU3Fenergy",dBU[3].Fenergy,"BU3Fenergy[BU3Fmult]/f");
-
-outT->Branch("BU4Fmult",&dBU[4].Fmult,"BU4Fmult/i");
-//outT->Branch("BU4Fnum",dBU[4].Fnum,"BU4Fnum[BU4Fmult]/i");
-//outT->Branch("BU4Fenergy",dBU[4].Fenergy,"BU4Fenergy[BU4Fmult]/f");
-
-outT->Branch("BU5Fmult",&dBU[5].Fmult,"BU5Fmult/i");
-//outT->Branch("BU5Fnum",dBU[5].Fnum,"BU5Fnum[BU5Fmult]/i");
-//outT->Branch("BU5Fenergy",dBU[5].Fenergy,"BU5Fenergy[BU5Fmult]/f");
-
-// Barcelona downstream branches
-
-outT->Branch("BD0Fmult",&dBD[0].Fmult,"BD0Fmult/i");
-//outT->Branch("BD0Fnum",dBD[0].Fnum,"BD0Fnum[BD0Fmult]/i");
-//outT->Branch("BD0Fenergy",dBD[0].Fenergy,"BD0Fenergy[BD0Fmult]/f");
-
-outT->Branch("BD1Fmult",&dBD[1].Fmult,"BD1Fmult/i");
-//outT->Branch("BD1Fnum",dBD[1].Fnum,"BD1Fnum[BD1Fmult]/i");
-//outT->Branch("BD1Fenergy",dBD[1].Fenergy,"BD1Fenergy[BD1Fmult]/f");
-
-outT->Branch("BD2Fmult",&dBD[2].Fmult,"BD2Fmult/i");
-//outT->Branch("BD2Fnum",dBD[2].Fnum,"BD2Fnum[BD2Fmult]/i");
-//outT->Branch("BD2Fenergy",dBD[2].Fenergy,"BD2Fenergy[BD2Fmult]/f");
-
-outT->Branch("BD3Fmult",&dBD[3].Fmult,"BD3Fmult/i");
-//outT->Branch("BD3Fnum",dBD[3].Fnum,"BD3Fnum[BD3Fmult]/i");
-//outT->Branch("BD3Fenergy",dBD[3].Fenergy,"BD3Fenergy[BD3Fmult]/f");
-
-outT->Branch("BD4Fmult",&dBD[4].Fmult,"BD4Fmult/i");
-//outT->Branch("BD4Fnum",dBD[4].Fnum,"BD4Fnum[BD4Fmult]/i");
-//outT->Branch("BD4Fenergy",dBD[4].Fenergy,"BD4Fenergy[BD4Fmult]/f");
-
-outT->Branch("BD5Fmult",&dBD[5].Fmult,"BD5Fmult/i");
-//outT->Branch("BD5Fnum",dBD[5].Fnum,"BD5Fnum[BD5Fmult]/i");
-//outT->Branch("BD5Fenergy",dBD[5].Fenergy,"BD5Fenergy[BD5Fmult]/f");
-
-outT->Branch("BUenergyMax",&BUenergyMax,"BUenergyMax/f"); outT->Branch("BDenergyMax",&BDenergyMax,"BDenergyMax/f");
-outT->Branch("BUdetMax",&BUdetMax,"BUdetMax/i"); outT->Branch("BDdetMax",&BDdetMax,"BDdetMax/i");
-outT->Branch("BUnumMax",&BUnumMax,"BUnumMax/i"); outT->Branch("BDnumMax",&BDnumMax,"BDnumMax/i"); 
-
-// General branches (salute)
-outT->Branch("dE",&dE,"dE/f"); // highest dE signal (from any barcelona detector, up or downstream)
-outT->Branch("dEtheta",&dEtheta,"dEtheta/f"); // theta from highest dE
-outT->Branch("dEphi",&dEphi,"dEphi/f"); // phi from highest dE
-outT->Branch("E",&E,"E/f"); // highest E signal (from any QQQ, for now. )
-outT->Branch("Etheta",&Etheta,"Etheta/f"); // theta from highest E
-outT->Branch("Ephi",&Ephi,"Ephi/f"); // phi from highest E
 
 /**************************************************************************************/
-tree->SetBranchAddress("event",&event);
+
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
 
@@ -281,6 +112,7 @@ for (int i=0;i<6;i++){
 		dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
 		dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
         dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
+        dBU[i].Ftime[j] = -1;
 }}
 
 for (i=0;i<12;i++){
@@ -289,6 +121,7 @@ for (i=0;i<12;i++){
 	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1; // fronts will need to change (frontup/front down)
         dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[j] = -1.;
     dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
+        dSX[i].Ftime[j] = -1; dSX[i].Btime[j] = -1;
 }}	
 
 for(i=0; i<4;i++){
@@ -297,6 +130,7 @@ for(i=0; i<4;i++){
 		dQ[i].Fnum[j] = -1; dQ[i].Bnum[j] = -1;
 		dQ[i].Fenergy[j] = -1.; dQ[i].Benergy[j] = -1.;
         dQ[i].z[j] = -1.; dQ[i].rho[j] = -1; dQ[i].phi[j] = -1000;
+        dQ[i].Ftime[j] = -1; dQ[i].Btime[j] = -1;
 }}
 
 SXBenergyMax = -1.; SXBnumMax = -1; SXBdetMax = -1;
@@ -325,134 +159,136 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 
 
 for (i=0;i<12;i++){
-	if(ibool) std::cout << "in SX3 back loop, detector " << i << ", mult = " << dSX[i].Bmult << std::endl;
+    // looping over detector number. Gordon separates his into detectors and strip is looked up if there's a hit
 	for(auto& back : event->barrel[i].backs){
-	if(ibool) std::cout << " detector " << i << std::endl;
-		if(back.energy>0){
-			dSX[i].Benergy[dSX[i].Bmult] = back.energy;
-			if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
-			if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
-			auto iter = m_chanMap.FindChannel(back.globalChannel);
-				if(iter == m_chanMap.End()){
-                    std::cout << "channel map error" << std::endl;
-				}else{
-                    dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
-                    if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
-				// dSX[i].Btime[mult] = back.timestamp;
-				dSX[i].Bmult++; 
-				if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
-	}}}
-	/* for(auto& frontup : event->barrel[i].frontsUp){
-		dSX[i].Fenergy[dSX[i].Fmult] = frontup.energy;
-		dSX[i].Fnum[dSX[i].Fmult] = frontup.globalChannel;
-		// dSX[i].Ftime[mult] = front.timestamp;
-		dSX[i].Fmult++;
-	} */
-}
-if(ibool) std::cout << std::endl;
+                if(ibool) std::cout << " detector " << i << std::endl;
+        dSX[i].Benergy[dSX[i].Bmult] = back.energy;
+        dSX[i].Btime[dSX[i].Bmult] = back.timestamp;
+                if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
+                if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
+        auto iter = m_chanMap.FindChannel(back.globalChannel);
+        if(iter == m_chanMap.End()){
+            std::cout << "channel map error" << std::endl;
+        }else{
+            dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
+                if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
+            dSX[i].Bmult++;
+                if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
+        }}
+} // need fronts
+    
+                if(ibool) std::cout << std::endl;
+// **************************************************************************************************
 // fill QQQs
 for (i=0;i<4;i++){
-	if(ibool) std::cout << "in QQQ ring loop, detector " << i << ", mult = " << dQ[i].Fmult << std::endl;
 	for(auto& ring : event->fqqq[i].rings){
-		if(ibool) std::cout << "QQQ ring " << i << std::endl;
-		if(ring.energy>0){
-			dQ[i].Fenergy[dQ[i].Fmult] = ring.energy;
-			if(ibool) std::cout << "dQ["<<i<<"].Fenergy["<<dQ[i].Fmult<<"] = " << dQ[i].Fenergy[dQ[i].Fmult] << std::endl;
-			auto iter = m_chanMap.FindChannel(ring.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-			}else{
-				dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
+                if(ibool) std::cout << "QQQ ring " << i << std::endl;
+        dQ[i].Fenergy[dQ[i].Fmult] = ring.energy;
+        dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
+                if(ibool) std::cout << "dQ["<<i<<"].Fenergy["<<dQ[i].Fmult<<"] = " << dQ[i].Fenergy[dQ[i].Fmult] << std::endl;
+        auto iter = m_chanMap.FindChannel(ring.globalChannel);
+        if(iter == m_chanMap.End()){
+            std::cout << "channel map error, QQQr" << std::endl;
+        }else{
+            dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
 				if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
-				//dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
-				if(dQ[i].Fenergy[dQ[i].Fmult]>QFenergyMax){
-					 QFenergyMax = dQ[i].Fenergy[dQ[i].Fmult];
-					 QFdetMax = i;
-					 QFnumMax = dQ[i].Fnum[dQ[i].Fmult];
-				}
 				dQ[i].Fmult++;
 				if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
-			
-	}}}
+        }}
+    
+    for(j=0; j<dQ[i].Fmult; j++){
+        dQ[i].z[j] = Qz;
+        // rho is fixed for each ring
+        // phi is fixed by wedge
+    }
 	for(auto& wedge : event->fqqq[i].wedges){
-		if(ibool) std::cout << "QQQ wedge " << i << std::endl;
-		if(wedge.energy>0){
+                if(ibool) std::cout << "QQQ wedge " << i << std::endl;
 			dQ[i].Benergy[dQ[i].Bmult] = wedge.energy;
-			if(ibool) std::cout << "dQ["<<i<<"].Benergy["<<dQ[i].Bmult<<"] = " << dQ[i].Benergy[dQ[i].Bmult] << std::endl;
+            dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
+                if(ibool) std::cout << "dQ["<<i<<"].Benergy["<<dQ[i].Bmult<<"] = " << dQ[i].Benergy[dQ[i].Bmult] << std::endl;
 			auto iter = m_chanMap.FindChannel(wedge.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-			}else{
-				dQ[i].Bnum[dQ[i].Bmult] = iter->second.local_channel;
-				if(ibool) std::cout << "dQ["<<i<<"].Bnum["<<dQ[i].Bmult<<"] = " << dQ[i].Bnum[dQ[i].Bmult] << std::endl;
-				//dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
-				dQ[i].Bmult++;
+        if(iter == m_chanMap.End()){
+				std::cout << "channel map error, QQQw" << std::endl;
+        }else{
+            dQ[i].Bnum[dQ[i].Bmult] = iter->second.local_channel;
+                if(ibool) std::cout << "dQ["<<i<<"].Bnum["<<dQ[i].Bmult<<"] = " << dQ[i].Bnum[dQ[i].Bmult] << std::endl;
+            dQ[i].Bmult++;
 				if(ibool) std::cout << "W mult after loop = " << dQ[i].Bmult << std::endl;
+}}
+    for(j=0; j<dQ[i].Bmult; j++){
+     // z is the same for front & back
+     // rho is fixed by ring
+        // each wedge is 5.625 deg, define centre of wedge as set phi
+        if(i==2) dQ[2].phi[j] = ((15 - dQ[2].Bnum[j]) * 5.625) + 2.8125;
+        else if (i==1) dQ[1].phi[j] = ((15 - dQ[1].Bnum[j]) * 5.625) + 92.8125;
+        else if (i==0) dQ[0].phi[j] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
+        else if (i==3) dQ[3].phi[j] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
+            if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
+    }
+    
+} // end loop over 4
+    
+    // need a loop that looks for interstrip hits.
 
-}}}
-}
-
+// **************************************************************************************************
 // Fill barcelonas 
 for(i=0;i<6;i++){
  	for(auto& front : event->barcDown[i].fronts){
-		if(front.energy>0){
-			dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
-			auto iter = m_chanMap.FindChannel(front.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-			}else{
-				dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
-				//dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
-				if(dBD[i].Fenergy[dBD[i].Fmult]>BDenergyMax){
-					BDenergyMax = dBD[i].Fenergy[dBD[i].Fmult];
-					BDnumMax = dBD[i].Fnum[dBD[i].Fmult];
-					BDdetMax = i;
-				}
-				dBD[i].Fmult++;
-			}}} // exit this loop with arrays of size mult, with detector number and strip
-            for(j=0;j<dBD[i].Fmult;j++){
-                if(i==0){ dBD[0].phi[j] = 270;
-                }else if(i==5){ dBD[5].phi[j] = 330;
-                }else{ dBD[i].phi[j] = 270 - (i*60);
-                }
-                dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
-                // +1 mm brings z to the centre of the strip
-            }
+        dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
+        dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
+        auto iter = m_chanMap.FindChannel(front.globalChannel);
+        if(iter == m_chanMap.End()){
+            std::cout << "channel map error, bdF" << std::endl;
+        }else{
+            dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
+            dBD[i].Fmult++;
+			}} // exit this loop with arrays of size mult, with detector number and strip
     
-
+    for(j=0;j<dBD[i].Fmult;j++){
+        if(i==0){ dBD[0].phi[j] = 270;
+        }else if(i==5){ dBD[5].phi[j] = 330;
+        }else{ dBD[i].phi[j] = 270 - (i*60);
+    }
+    dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
+    // +1 mm brings z to the centre of the strip
+    }
 	for(auto& front : event->barcUp[i].fronts){
-		if(front.energy>0){
-			dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
+            dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
+            dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
 			auto iter = m_chanMap.FindChannel(front.globalChannel);
 			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
+				std::cout << "channel map error, BUf" << std::endl;
 			}else{
 				dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
-				//dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
-				if(dBU[i].Fenergy[dBU[i].Fmult]>BUenergyMax){
-					BUenergyMax = dBU[i].Fenergy[dBU[i].Fmult];
-					BUnumMax = dBU[i].Fnum[dBU[i].Fmult];
-					BUdetMax = i;
-				}
 				dBU[i].Fmult++;
-			}}}
+			}}
+    
     for(j=0;j<dBU[i].Fmult;j++){
         if(i==0){ dBU[0].phi[j] = 270;
         }else if(i==5){ dBU[5].phi[j] = 330;
         }else{ dBU[i].phi[j] = 270 - (i*60);
         }
         dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
-    // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
+        // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
     }
-}
+} // end loop over 6
+
+// ***************************************************
+    // At this point, in each event, we know which strips fired, the multiplicity
+    // the timestamp and the energy.
+    // Still need to look at interstrip hits
+    // I think we could benefit from an inner (any barc) and outer multiplicity (SX3 or QQQ)
+    // but this is really just dE-E.
+    // And then sort these to get the biggest inner and outer.
+
+
     
-
-/**************************************************************************************/
-// Sorting to get the biggest hit
-// dE = largest of Barc up or Barc down
-
-// not quite right to have theta = strip number here because of the reversing of the strip
-// numbers between up and downstream. 
+    //                if(dBD[i].Fenergy[dBD[i].Fmult]>BDenergyMax){
+    //                    BDenergyMax = dBD[i].Fenergy[dBD[i].Fmult];
+    //                    BDnumMax = dBD[i].Fnum[dBD[i].Fmult];
+    //                    BDdetMax = i;
+    //                }
+    
 if (BUenergyMax>BDenergyMax){
 		dE = BUenergyMax;
 		dEtheta = BUnumMax; 
@@ -470,14 +306,16 @@ if (BUenergyMax>BDenergyMax){
 // phi = -1*arcsin(y/rho) + pi, if x<0 && y>=0;
 // phi = -1*arcsin(y/rho)
 
-
-/**************************************************************************************/
+    
+          
+//******************************************************
 outputfile->cd();
 outT->Fill();
 if(jentry%10000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
 } // end of event loop
-/**************************************************************************************/
+    
+//**************************************************************************************
 outputfile->cd();
 std::cout << "Printing" << std::endl; outT->Print();
 std::cout << "Writing" << std::endl; outT->Write();
