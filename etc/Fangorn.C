@@ -46,21 +46,26 @@ TTree *outT = new TTree("TreeData","TreeData");
 std::cout<<"Opening "<<output_filename<<std::endl;
 
 // ***** definitions *****
-struct dataSX{ int Fmult; int Bmult; float Fenergy[4]; float Benergy[4]; int Fnum[4]; int Bnum[4];}; // members of each detector class
-struct dataQ{ int Fmult; int Bmult; float Fenergy[16]; float Benergy[16]; int Fnum[16]; int Bnum[16]; float rho[16]; float theta[16]; float phi[16]; }; //Fnum & Bnum are local channel numbers
-struct dataBarcUp{ int Fmult; float Fenergy[32]; int Fnum[32];};
-struct dataBarcDown{ int Fmult; float Fenergy[32]; int Fnum[32];};
+// Fmult, Bmult -- front/back multiplicity
+// Fnum, Bnum -- front/back local channel (i.e. strip number)
+// Fenergy, Benergy -- front/back energy
+// rho, phi, z -- cylindrical coordinates at center of strip (QQQ: degrees & mm)
+// time -- time from backs (for QQQs)
+
+struct dataSX{ int Fmult; int Bmult; double Fenergy[4]; double Benergy[4]; int Fnum[4]; int Bnum[4];}; // members of each detector class
+struct dataQ{ int Fmult; int Bmult; double Fenergy[16]; double Benergy[16]; int Fnum[16]; int Bnum[16]; float rho[16]; float phi[16]; double time[16];};
+struct dataBarcUp{ int Fmult; double Fenergy[32]; int Fnum[32];};
+struct dataBarcDown{ int Fmult; double Fenergy[32]; int Fnum[32];};
 dataQ dQ[4]; // number of each type of detector
 dataSX dSX[12];
 dataBarcUp dBU[6];
 dataBarcDown dBD[6]; // I think this is actually 5
 
-int i, j;
-float SXBenergyMax; int SXBnumMax; int SXBdetMax;
-float QFenergyMax; int QFnumMax; int QFdetMax;
-float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
-float dE; float dEtheta; float dEphi; float dErho;
-float E; float Etheta; float Ephi; float Erho;
+double SXBenergyMax; int SXBnumMax; int SXBdetMax;
+double QFenergyMax; int QFnumMax; int QFdetMax;
+double BUenergyMax; double BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
+double dE; float dEphi; float dEz;
+double E; float Ephi; float Erho;
 
 
 // ***** output tree *****
@@ -154,34 +159,34 @@ outT->Branch("SXBdetMax",&SXBdetMax,"SXBdetMax/i"); // ... and its detector
 // QQQ branches
 
 outT->Branch("Q0Fmult",&dQ[0].Fmult,"Q0Fmult/i"); outT->Branch("Q0Bmult",&dQ[0].Bmult,"Q0Bmult/i");
-//outT->Branch("Q0Fnum",dQ[0].Fnum,"Q0Fnum[Q0Fmult]/i"); outT->Branch("Q0Bnum",dQ[0].Bnum,"Q0Bnum[Q0Bmult]/i");
-//outT->Branch("Q0Fenergy",dQ[0].Fenergy,"Q0Fenergy[Q0Fmult]/f"); outT->Branch("Q0Benergy",dQ[0].Benergy,"Q0Benergy[Q0Bmult]/f");
-//outT->Branch("Q0rho",&dQ[0].rho,"Q0rho/i"); 
-//outT->Branch("Q0theta",&dQ[0].theta,"Q0theta/i");
-outT->Branch("Q0phi",&dQ[0].phi,"Q0phi[Q0Fmult]/f");
+outT->Branch("Q0Fnum",dQ[0].Fnum,"Q0Fnum[Q0Fmult]/i"); outT->Branch("Q0Bnum",dQ[0].Bnum,"Q0Bnum[Q0Bmult]/i");
+outT->Branch("Q0Fenergy",dQ[0].Fenergy,"Q0Fenergy[Q0Fmult]/d"); outT->Branch("Q0Benergy",dQ[0].Benergy,"Q0Benergy[Q0Bmult]/d");
+outT->Branch("Q0time",&dQ[0].time,"Q0time[Q0Bmult]/d"); //storing time from backs
+outT->Branch("Q0rho",&dQ[0].rho,"Q0rho[Q0Fmult]/f"); //rho from fronts
+outT->Branch("Q0phi",&dQ[0].phi,"Q0phi[Q0Bmult]/f"); //phi from backs
 
 outT->Branch("Q1Fmult",&dQ[1].Fmult,"Q1Fmult/i"); outT->Branch("Q1Bmult",&dQ[1].Bmult,"Q1Bmult/i");
-//outT->Branch("Q1Fnum",dQ[1].Fnum,"Q1Fnum[Q1Fmult]/i"); outT->Branch("Q1Bnum",dQ[1].Bnum,"Q1Bnum[Q1Bmult]/i");
-//outT->Branch("Q1Fenergy",dQ[1].Fenergy,"Q1Fenergy[Q1Fmult]/f"); outT->Branch("Q1Benergy",dQ[1].Benergy,"Q1Benergy[Q1Bmult]/f");
-//outT->Branch("Q1rho",&dQ[1].rho,"Q1rho/i"); 
-//outT->Branch("Q1theta",&dQ[1].theta,"Q1theta/i");
-outT->Branch("Q1phi",&dQ[1].phi,"Q1phi[Q1Fmult]/f");
+outT->Branch("Q1Fnum",dQ[1].Fnum,"Q1Fnum[Q1Fmult]/i"); outT->Branch("Q1Bnum",dQ[1].Bnum,"Q1Bnum[Q1Bmult]/i");
+outT->Branch("Q1Fenergy",dQ[1].Fenergy,"Q1Fenergy[Q1Fmult]/d"); outT->Branch("Q1Benergy",dQ[1].Benergy,"Q1Benergy[Q1Bmult]/d");
+outT->Branch("Q1time",&dQ[1].time,"Q1time[Q1Bmult]/d"); //storing time from backs
+outT->Branch("Q1rho",&dQ[1].rho,"Q1rho[Q1Fmult]/f"); //rho from fronts
+outT->Branch("Q1phi",&dQ[1].phi,"Q1phi[Q1Bmult]/f"); //phi from backs
 
 outT->Branch("Q2Fmult",&dQ[2].Fmult,"Q2Fmult/i"); outT->Branch("Q2Bmult",&dQ[2].Bmult,"Q2Bmult/i");
-//outT->Branch("Q2Fnum",dQ[2].Fnum,"Q2Fnum[Q2Fmult]/i"); outT->Branch("Q2Bnum",dQ[2].Bnum,"Q2Bnum[Q2Bmult]/i");
-//outT->Branch("Q2Fenergy",dQ[2].Fenergy,"Q2Fenergy[Q2Fmult]/f"); outT->Branch("Q2Benergy",dQ[2].Benergy,"Q2Benergy[Q2Bmult]/f");
-//outT->Branch("Q2rho",&dQ[2].rho,"Q2rho/i"); 
-//outT->Branch("Q2theta",&dQ[2].theta,"Q2theta/i");
-outT->Branch("Q2phi",&dQ[2].phi,"Q2phi[Q2Fmult]/f");
+outT->Branch("Q2Fnum",dQ[2].Fnum,"Q2Fnum[Q2Fmult]/i"); outT->Branch("Q2Bnum",dQ[2].Bnum,"Q2Bnum[Q2Bmult]/i");
+outT->Branch("Q2Fenergy",dQ[2].Fenergy,"Q2Fenergy[Q2Fmult]/d"); outT->Branch("Q2Benergy",dQ[2].Benergy,"Q2Benergy[Q2Bmult]/d");
+outT->Branch("Q2time",&dQ[2].time,"Q2time[Q2Bmult]/d"); //storing time from backs
+outT->Branch("Q2rho",&dQ[2].rho,"Q2rho[Q2Fmult]/f"); //rho from fronts
+outT->Branch("Q2phi",&dQ[2].phi,"Q2phi[Q2Bmult]/f"); //phi from backs
 
 outT->Branch("Q3Fmult",&dQ[3].Fmult,"Q3Fmult/i"); outT->Branch("Q3Bmult",&dQ[3].Bmult,"Q3Bmult/i");
-//outT->Branch("Q3Fnum",dQ[3].Fnum,"Q3Fnum[Q3Fmult]/i"); outT->Branch("Q3Bnum",dQ[3].Bnum,"Q3Bnum[Q3Bmult]/i");
-//outT->Branch("Q3Fenergy",dQ[3].Fenergy,"Q3Fenergy[Q3Fmult]/f"); outT->Branch("Q3Benergy",dQ[3].Benergy,"Q3Benergy[Q3Bmult]/f");
-//outT->Branch("Q3rho",&dQ[3].rho,"Q3rho/i"); 
-//outT->Branch("Q3theta",&dQ[3].theta,"Q3theta/i");
-outT->Branch("Q3phi",&dQ[3].phi,"Q3phi[Q3Fmult]/f");
+outT->Branch("Q3Fnum",dQ[3].Fnum,"Q3Fnum[Q3Fmult]/i"); outT->Branch("Q3Bnum",dQ[3].Bnum,"Q3Bnum[Q3Bmult]/i");
+outT->Branch("Q3Fenergy",dQ[3].Fenergy,"Q3Fenergy[Q3Fmult]/d"); outT->Branch("Q3Benergy",dQ[3].Benergy,"Q3Benergy[Q3Bmult]/d");
+outT->Branch("Q3time",&dQ[3].time,"Q3time[Q3Bmult]/d"); //storing time from backs
+outT->Branch("Q3rho",&dQ[3].rho,"Q3rho[Q3Fmult]/f"); //rho from fronts
+outT->Branch("Q3phi",&dQ[3].phi,"Q3phi[Q3Bmult]/f"); //phi from backs
 
-outT->Branch("QFenergyMax",&QFenergyMax,"QFenergyMax/f");
+outT->Branch("QFenergyMax",&QFenergyMax,"QFenergyMax/d");
 outT->Branch("QFdetMax",&QFdetMax,"QFdetMax/i");
 outT->Branch("QFnumMax",&QFnumMax,"QFnumMax/i");
 
@@ -242,13 +247,14 @@ outT->Branch("BUdetMax",&BUdetMax,"BUdetMax/i"); outT->Branch("BDdetMax",&BDdetM
 outT->Branch("BUnumMax",&BUnumMax,"BUnumMax/i"); outT->Branch("BDnumMax",&BDnumMax,"BDnumMax/i"); 
 
 // General branches (salute)
-outT->Branch("dE",&dE,"dE/f"); // highest dE signal (from any barcelona detector, up or downstream)
-outT->Branch("dEtheta",&dEtheta,"dEtheta/f"); // theta from highest dE
+outT->Branch("dE",&dE,"dE/d"); // highest dE signal (from any barcelona detector, up or downstream)
+outT->Branch("dEz",&dEz,"dEz/f"); // z from highest dE
 outT->Branch("dEphi",&dEphi,"dEphi/f"); // phi from highest dE
-outT->Branch("E",&E,"E/f"); // highest E signal (from any QQQ, for now. )
-outT->Branch("Etheta",&Etheta,"Etheta/f"); // theta from highest E
+//outT->Branch("dErho",&dErho,"dErho/f"); // rho from highest dE (isn't that just a constant?)
+outT->Branch("E",&E,"E/d"); // highest E signal (from any QQQ, for now. )
+//outT->Branch("Ez",&Ez,"Ez/f"); // z from highest E (z for QQQ is a constant, z for SX3s is calculated)
 outT->Branch("Ephi",&Ephi,"Ephi/f"); // phi from highest E
-//outT->Branch("Erho",&Erho,"Erho/f"); // phi from highest E
+outT->Branch("Erho",&Erho,"Erho/f"); // rho from highest E
 
 /**************************************************************************************/
 tree->SetBranchAddress("event",&event);
@@ -274,27 +280,26 @@ for (int j=0;j<6;j++){
 		dBU[j].Fenergy[i] = -1.; dBU[j].Fnum[i] = -1;
 }}
 
-/*for (i=0;i<12;i++){
+/*for (int i=0;i<12;i++){
 	dSX[i].Fmult = 0; dSX[i].Bmult = 0;
-	for(j=0;j<4;j++){
+	for(int j=0;j<4;j++){
 	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1;
 	dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[i] = -1.;
 }}*/	
 
-for(i=0; i<4;i++){
+for(int i=0; i<4;i++){
 	dQ[i].Fmult = 0; dQ[i].Bmult = 0;
-	for(j=0;j<16;j++){
+	for(int j=0;j<16;j++){
 		dQ[i].Fnum[j] = -1; dQ[i].Bnum[j] = -1;
 		dQ[i].Fenergy[j] = -1.; dQ[i].Benergy[j] = -1.;
-		dQ[i].phi[j] = -1; //dQ[i].rho[j] = -1; dQ[i].theta[j] = -1;
+		dQ[i].phi[j] = -1; dQ[i].rho[j] = -1;
 }}
 
 SXBenergyMax = -1.; SXBnumMax = -1; SXBdetMax = -1;
 QFdetMax = -1; QFenergyMax = -1.; QFnumMax = -1;
 BUdetMax = -1; BUnumMax = -1; BUenergyMax = -1.; BDdetMax = -1; BDnumMax = -1; BDenergyMax = -1.;
 
-dE = -1.; dEtheta = -1.; dEphi = -1.; E = -1.; Etheta = -1.; Ephi = -1.;
-//dErho = 5;
+dE = -1.; dEz = -1.; dEphi = -1.; E = -1.; Erho = -1.; Ephi = -1.;
 
 EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
@@ -345,10 +350,10 @@ if(ibool) std::cout << std::endl;
 
 
 // fill QQQs
-for (i=0;i<4;i++){
+for (int i=0;i<4;i++){
 
 	//fix the fact that QQQ2&3 are swapped (for 18F runs)
-	int iQQQ, iWedge;
+	int iQQQ, iWedge, iRing;
 	switch(i){
 		case 0:
 			iQQQ = i;
@@ -363,6 +368,7 @@ for (i=0;i<4;i++){
 			iQQQ = 2;
 			break;
 	}
+	//now index must be iQQQ not i
 	if(ibool) std::cout << "in QQQ ring loop, detector " << iQQQ << ", mult = " << dQ[iQQQ].Fmult << std::endl;
 	for(auto& ring : event->fqqq[iQQQ].rings){
 		if(ibool) std::cout << "QQQ ring " << dQ[iQQQ].Fmult << std::endl;
@@ -373,10 +379,12 @@ for (i=0;i<4;i++){
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 			}else{
-				dQ[iQQQ].Fnum[dQ[iQQQ].Fmult] = iter->second.local_channel;
+				iRing = iter->second.local_channel; //iRing is local ring # (unvetted, some may be "reversed")
 				if(ibool) std::cout << "dQ["<<iQQQ<<"].Fnum["<<dQ[iQQQ].Fmult<<"] = " << dQ[iQQQ].Fnum[dQ[iQQQ].Fmult] << std::endl;
-				//dQ[iQQQ].Ftime[dQ[iQQQ].Fmult] = ring.timestamp;
-				//dQ[iQQQ].rho[dQ[iQQQ].Fmult] = ; //get rho from rings
+				dQ[iQQQ].Fnum[dQ[iQQQ].Fmult] = iRing;
+				float rho = (iRing+0.5)*(0.099-0.0501)/16.; //rho in mm (assuming 0to15 counts outward)
+				dQ[iQQQ].rho[dQ[iQQQ].Fmult] = rho; //get rho from rings
+				if(ibool) std::cout << "rho for ring "<<iRing<<" of QQQ "<<iQQQ<<" = " << dQ[iQQQ].rho[dQ[iQQQ].Fmult] << std::endl;
 				if(dQ[iQQQ].Fenergy[dQ[iQQQ].Fmult]>QFenergyMax){
 					 QFenergyMax = dQ[iQQQ].Fenergy[dQ[iQQQ].Fmult];
 					 QFdetMax = iQQQ;
@@ -396,15 +404,15 @@ for (i=0;i<4;i++){
 			if(iter == m_chanMap.End()){ 
 				std::cout << "channel map error" << std::endl;
 				return;
-			}else if(iQQQ==0 || iQQQ==2){
-				iWedge = 15.-iter->second.local_channel; //QQQ0&2 corrected so all wedges count CCW 0 to 15
+			}else if(iQQQ==0 || iQQQ==2){//QQQ0&2 corrected so all wedges count CCW 0 to 15
+				iWedge = 15.-iter->second.local_channel; //iWedge is local wedge #
 			}else{
-				iWedge = iter->second.local_channel;
+				iWedge = iter->second.local_channel; //iWedge is local wedge #
 			}
 			dQ[iQQQ].Bnum[dQ[iQQQ].Bmult] = iWedge;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Bnum["<<dQ[iQQQ].Bmult<<"] = " << dQ[iQQQ].Bnum[dQ[iQQQ].Bmult] << std::endl;
-			//dQ[iQQQ].Btime[dQ[iQQQ].Bmult] = wedge.timestamp;
-			float phi = 270. - (iQQQ*16 +iWedge)*360./64.;
+			dQ[iQQQ].time[dQ[iQQQ].Bmult] = wedge.timestamp;
+			float phi = 270.-(90.*iQQQ) - (iWedge+0.5)*87.158/16.; //phi in degrees
 			dQ[iQQQ].phi[dQ[iQQQ].Bmult] = (phi < 0.) ? (phi + 360.) : (phi); //get phi from wedges; if phi < 0, then add 360
 			if(ibool) std::cout << "phi for wedge "<<iWedge<<" of QQQ "<<iQQQ<<" = " << dQ[iQQQ].phi[dQ[iQQQ].Bmult] << std::endl;
 			dQ[iQQQ].Bmult++;
@@ -414,7 +422,7 @@ for (i=0;i<4;i++){
 }
 
 // Fill barcelonas 
-for(i=0;i<6;i++){
+for(int i=0;i<6;i++){
  	for(auto& front : event->barcDown[i].fronts){
 		if(front.energy>0){
 			dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
@@ -457,10 +465,10 @@ for(i=0;i<6;i++){
 // numbers between up and downstream. 
 if (BUenergyMax>BDenergyMax){
 		dE = BUenergyMax;
-		dEtheta = BUnumMax; 
+		//dEtheta = BUnumMax; 
 }else{
 		dE = BDenergyMax;
-		dEtheta = BDnumMax;
+		//dEtheta = BDnumMax;
 }
 
 // Coordinates of world: +x is beam right, +y is towards the floor, +z is the beam direction
