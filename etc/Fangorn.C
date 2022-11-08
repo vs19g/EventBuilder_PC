@@ -45,51 +45,6 @@ TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 TTree *outT = new TTree("TreeData","TreeData");
 std::cout<<"Opening "<<output_filename<<std::endl;
 
-// ***** definitions ***** // don't need to write all these to the tree, just global stuff?
-    struct dataSX{
-        int detnum; int Fmult; int Bmult;
-        float Fenergy[8]; float Benergy[4]; // is front 8 though? for near and far?
-        int Fnum[4]; int Bnum[4];
-        float z[4]; float rho[4]; float phi[4];
-        long Btime[4]; long Ftime[8];
-    };
-    struct dataQ{
-        int detnum; int Fmult; int Bmult;
-        float Fenergy[16]; float Benergy[16];
-        int Fnum[16]; int Bnum[16];
-        float z[16]; float rho[16]; float phi[16];
-        long Btime[16]; long Ftime[16];
-    };
-    struct dataBarcUp{
-        int detnum; int Fmult;
-        float Fenergy[32]; int Fnum[32];
-        float z[32]; float rho[32]; float phi[32];
-        long Ftime[32];
-    };
-    struct dataBarcDown{
-        int detnum; int Fmult;
-        float Fenergy[32]; int Fnum[32];
-        float z[32]; float rho[32]; float phi[32];
-        long Ftime[32];
-    };
-        
-    dataQ dQ[4]; // number of each type of detector
-    dataSX dSX[12];
-    dataBarcUp dBU[6];
-    dataBarcDown dBD[6]; // I think this is actually 5
-
-int i, j;
-float SXBenergyMax; int SXBnumMax; int SXBdetMax;
-float QFenergyMax; int QFnumMax; int QFdetMax;
-float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
-float dE; float dEtheta; float dEphi; 
-float E; float Etheta; float Ephi;
-    float BDzoffset = 120.; // mm, placeholder
-    float BUzoffset = 200.; // mm, placeholder
-    float Qz = 50.; // mm, placeholder
-
-
-
 /**************************************************************************************/
 
 Long64_t nevents = tree->GetEntries();
@@ -101,9 +56,10 @@ for (jentry=0; jentry<nevents; jentry++){
 /**************************************************************************************/
 /***************** Call the exterminator! You've got bugs! ****************************/
 /****************************/ bool ibool = 1; /***************************************/
+/***************************/ bool summary = 0; /**************************************/
 /**************************************************************************************/
 
-if(ibool) std::cout << " entry " << jentry << std::endl;
+if(ibool||summary) std::cout << " entry " << jentry << std::endl;
 /**************************************************************************************/
 // initialise everything
 for (int i=0;i<6;i++){
@@ -120,7 +76,7 @@ for (i=0;i<12;i++){
 	for(j=0;j<4;j++){
 	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1; // fronts will need to change (frontup/front down)
         dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[j] = -1.;
-    dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
+	dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
         dSX[i].Ftime[j] = -1; dSX[i].Btime[j] = -1;
 }}	
 
@@ -133,11 +89,13 @@ for(i=0; i<4;i++){
         dQ[i].Ftime[j] = -1; dQ[i].Btime[j] = -1;
 }}
 
-SXBenergyMax = -1.; SXBnumMax = -1; SXBdetMax = -1;
-QFdetMax = -1; QFenergyMax = -1.; QFnumMax = -1;
-BUdetMax = -1; BUnumMax = -1; BUenergyMax = -1.; BDdetMax = -1; BDnumMax = -1; BDenergyMax = -1.;
+ for(i=0;i<30;i++){ inner_E[i] = inner_phi[i] = outer_E[i] = outer_phi[i] = -1.;}
 
-dE = -1.; dEtheta = -1.; dEphi = -1.; E = -1.; Etheta = -1.; Ephi = -1.;
+ //SXBenergyMax = -1.; SXBnumMax = -1; SXBdetMax = -1;
+ //QFdetMax = -1; QFenergyMax = -1.; QFnumMax = -1;
+ //BUdetMax = -1; BUnumMax = -1; BUenergyMax = -1.; BDdetMax = -1; BDnumMax = -1; BDenergyMax = -1.;
+
+ //dE = -1.; dEtheta = -1.; dEphi = -1.; E = -1.; Etheta = -1.; Ephi = -1.;
 
 EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
@@ -157,7 +115,7 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Pattern is Down ch 0, 2, 5, 7; Up ch 1, 3, 4, 6
 // but the front multiplicity should be for the entire front strip, not the individual ends.
 
-
+ outermult = 0;
 for (i=0;i<12;i++){
     // looping over detector number. Gordon separates his into detectors and strip is looked up if there's a hit
 	for(auto& back : event->barrel[i].backs){
@@ -175,7 +133,21 @@ for (i=0;i<12;i++){
             dSX[i].Bmult++;
                 if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
         }}
-} // need fronts
+
+	for(j=0;j<dSX[i].Bmult;j++){
+	  if(i==0){ dSX[0].phi[j] = 247.5;
+	  }else if(i>0 && i<9){ dSX[i].phi[j] = 247.5 - (i*22.5);
+	  }else if(i==9){ dSX[9].phi[j] = 337.5;
+	  }else if(i==10){ dSX[10].phi[j] = 315.0;
+	  }else if(i==11){ dSX[11].phi[j] = 292.5;
+	  }
+
+	  outer_E[outermult] = dSX[i].Benergy[j];
+	  outer_phi[outermult] = dSX[i].phi[j];
+	  outermult++;
+	}
+ } //  end loop over 12
+ // need fronts
     
                 if(ibool) std::cout << std::endl;
 // **************************************************************************************************
@@ -191,9 +163,9 @@ for (i=0;i<4;i++){
             std::cout << "channel map error, QQQr" << std::endl;
         }else{
             dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
-				if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
-				dQ[i].Fmult++;
-				if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
+		if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
+	    dQ[i].Fmult++;
+		if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
         }}
     
     for(j=0; j<dQ[i].Fmult; j++){
@@ -224,6 +196,11 @@ for (i=0;i<4;i++){
         else if (i==0) dQ[0].phi[j] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
         else if (i==3) dQ[3].phi[j] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
             if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
+	    
+	    outer_E[outermult] = dQ[i].Benergy[j];
+	    outer_phi[outermult] = dQ[i].phi[j];
+	    outermult++;
+
     }
     
 } // end loop over 4
@@ -232,17 +209,17 @@ for (i=0;i<4;i++){
 
 // **************************************************************************************************
 // Fill barcelonas 
+int innermult = 0;
 for(i=0;i<6;i++){
  	for(auto& front : event->barcDown[i].fronts){
         dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
         dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
         auto iter = m_chanMap.FindChannel(front.globalChannel);
-        if(iter == m_chanMap.End()){
-            std::cout << "channel map error, bdF" << std::endl;
+        if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
         }else{
             dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
-            dBD[i].Fmult++;
-			}} // exit this loop with arrays of size mult, with detector number and strip
+            dBD[i].Fmult++;}
+	} // exit this loop with arrays of size mult, with detector number and strip
     
     for(j=0;j<dBD[i].Fmult;j++){
         if(i==0){ dBD[0].phi[j] = 270;
@@ -250,18 +227,23 @@ for(i=0;i<6;i++){
         }else{ dBD[i].phi[j] = 270 - (i*60);
     }
     dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
-    // +1 mm brings z to the centre of the strip
-    }
+      // +1 mm brings z to the centre of the strip
+
+    inner_E[innermult] = dBD[i].Fenergy[j];
+    inner_phi[innermult] = dBD[i].phi[j];
+    innermult++;
+  
+      }
+
 	for(auto& front : event->barcUp[i].fronts){
-            dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
-            dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
-			auto iter = m_chanMap.FindChannel(front.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error, BUf" << std::endl;
-			}else{
-				dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
-				dBU[i].Fmult++;
-			}}
+        dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
+        dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
+	auto iter = m_chanMap.FindChannel(front.globalChannel);
+	if(iter == m_chanMap.End()){ std::cout << "channel map error, BUf" << std::endl;
+	}else{
+	    dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
+	    dBU[i].Fmult++;}
+	}
     
     for(j=0;j<dBU[i].Fmult;j++){
         if(i==0){ dBU[0].phi[j] = 270;
@@ -270,8 +252,13 @@ for(i=0;i<6;i++){
         }
         dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
         // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
+
+	inner_E[innermult] = dBU[i].Fenergy[j];
+	inner_phi[innermult] = dBU[i].phi[j];
+	innermult++;
     }
 } // end loop over 6
+
 
 // ***************************************************
     // At this point, in each event, we know which strips fired, the multiplicity
