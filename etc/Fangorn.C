@@ -54,31 +54,15 @@ for (jentry=0; jentry<nevents; jentry++){
     tree->GetEntry(jentry);
 	
 /**************************************************************************************/
-/***************** Call the exterminator! You've got bugs! ****************************/
-/****************************/ bool ibool = 1; /***************************************/
-/***************************/ bool summary = 0; /**************************************/
+/***************** Call the exterminator! You've got bugs! ******************/
+/****************************/ bool ibool = 0; /**************************/
+/***************************/ bool summary = 0; /*****************************/
 /**************************************************************************************/
 
-if(ibool||summary) std::cout << " entry " << jentry << std::endl;
-/**************************************************************************************/
+/*************************************************************************************/
+//branches here? or call to it?
+    
 // initialise everything
-for (int i=0;i<6;i++){
-	dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1;
-	for (int j=0; j<32;j++){
-		dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
-		dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
-        dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
-        dBU[i].Ftime[j] = -1;
-}}
-
-for (i=0;i<12;i++){
-	dSX[i].Fmult = 0; dSX[i].Bmult = 0; dSX[i].detnum = -1;
-	for(j=0;j<4;j++){
-	dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1; // fronts will need to change (frontup/front down)
-        dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[j] = -1.;
-	dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
-        dSX[i].Ftime[j] = -1; dSX[i].Btime[j] = -1;
-}}	
 
 for(i=0; i<4;i++){
 	dQ[i].Fmult = 0; dQ[i].Bmult = 0; dQ[i].detnum = -1;
@@ -89,13 +73,6 @@ for(i=0; i<4;i++){
         dQ[i].Ftime[j] = -1; dQ[i].Btime[j] = -1;
 }}
 
- for(i=0;i<30;i++){ inner_E[i] = inner_phi[i] = outer_E[i] = outer_phi[i] = -1.;}
-
- //SXBenergyMax = -1.; SXBnumMax = -1; SXBdetMax = -1;
- //QFdetMax = -1; QFenergyMax = -1.; QFnumMax = -1;
- //BUdetMax = -1; BUnumMax = -1; BUenergyMax = -1.; BDdetMax = -1; BDnumMax = -1; BDenergyMax = -1.;
-
- //dE = -1.; dEtheta = -1.; dEphi = -1.; E = -1.; Etheta = -1.; Ephi = -1.;
 
 EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
@@ -115,46 +92,11 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Pattern is Down ch 0, 2, 5, 7; Up ch 1, 3, 4, 6
 // but the front multiplicity should be for the entire front strip, not the individual ends.
 
- outermult = 0;
-for (i=0;i<12;i++){
-    // looping over detector number. Gordon separates his into detectors and strip is looked up if there's a hit
-	for(auto& back : event->barrel[i].backs){
-                if(ibool) std::cout << " detector " << i << std::endl;
-        dSX[i].Benergy[dSX[i].Bmult] = back.energy;
-        dSX[i].Btime[dSX[i].Bmult] = back.timestamp;
-                if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
-                if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
-        auto iter = m_chanMap.FindChannel(back.globalChannel);
-        if(iter == m_chanMap.End()){
-            std::cout << "channel map error" << std::endl;
-        }else{
-            dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
-                if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
-            dSX[i].Bmult++;
-                if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
-        }}
-
-	for(j=0;j<dSX[i].Bmult;j++){
-	  if(i==0){ dSX[0].phi[j] = 247.5;
-	  }else if(i>0 && i<9){ dSX[i].phi[j] = 247.5 - (i*22.5);
-	  }else if(i==9){ dSX[9].phi[j] = 337.5;
-	  }else if(i==10){ dSX[10].phi[j] = 315.0;
-	  }else if(i==11){ dSX[11].phi[j] = 292.5;
-	  }
-
-	  outer_E[outermult] = dSX[i].Benergy[j];
-	  outer_phi[outermult] = dSX[i].phi[j];
-	  outermult++;
-	}
- } //  end loop over 12
- // need fronts
-    
-                if(ibool) std::cout << std::endl;
-// **************************************************************************************************
+//******************************************************************
 // fill QQQs
 for (i=0;i<4;i++){
 	for(auto& ring : event->fqqq[i].rings){
-                if(ibool) std::cout << "QQQ ring " << i << std::endl;
+            if(ibool) std::cout << "Entry " << jentry << " QQQ ring " << i << std::endl;
         dQ[i].Fenergy[dQ[i].Fmult] = ring.energy;
         dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
                 if(ibool) std::cout << "dQ["<<i<<"].Fenergy["<<dQ[i].Fmult<<"] = " << dQ[i].Fenergy[dQ[i].Fmult] << std::endl;
@@ -170,15 +112,16 @@ for (i=0;i<4;i++){
     
     for(j=0; j<dQ[i].Fmult; j++){
         dQ[i].z[j] = Qz;
+        dQ[i].rho[j] = (dQ[i].Fnum[j]+0.5)*(0.099-0.0501)/16; // rho in mm
         // rho is fixed for each ring
         // phi is fixed by wedge
     }
 	for(auto& wedge : event->fqqq[i].wedges){
                 if(ibool) std::cout << "QQQ wedge " << i << std::endl;
-			dQ[i].Benergy[dQ[i].Bmult] = wedge.energy;
-            dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
+        dQ[i].Benergy[dQ[i].Bmult] = wedge.energy;
+        dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
                 if(ibool) std::cout << "dQ["<<i<<"].Benergy["<<dQ[i].Bmult<<"] = " << dQ[i].Benergy[dQ[i].Bmult] << std::endl;
-			auto iter = m_chanMap.FindChannel(wedge.globalChannel);
+        auto iter = m_chanMap.FindChannel(wedge.globalChannel);
         if(iter == m_chanMap.End()){
 				std::cout << "channel map error, QQQw" << std::endl;
         }else{
@@ -196,94 +139,12 @@ for (i=0;i<4;i++){
         else if (i==0) dQ[0].phi[j] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
         else if (i==3) dQ[3].phi[j] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
             if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
-	    
-	    outer_E[outermult] = dQ[i].Benergy[j];
-	    outer_phi[outermult] = dQ[i].phi[j];
-	    outermult++;
-
     }
     
 } // end loop over 4
     
-    // need a loop that looks for interstrip hits.
-
-// **************************************************************************************************
-// Fill barcelonas 
-int innermult = 0;
-for(i=0;i<6;i++){
- 	for(auto& front : event->barcDown[i].fronts){
-        dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
-        dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
-        auto iter = m_chanMap.FindChannel(front.globalChannel);
-        if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
-        }else{
-            dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
-            dBD[i].Fmult++;}
-	} // exit this loop with arrays of size mult, with detector number and strip
-    
-    for(j=0;j<dBD[i].Fmult;j++){
-        if(i==0){ dBD[0].phi[j] = 270;
-        }else if(i==5){ dBD[5].phi[j] = 330;
-        }else{ dBD[i].phi[j] = 270 - (i*60);
-    }
-    dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
-      // +1 mm brings z to the centre of the strip
-
-    inner_E[innermult] = dBD[i].Fenergy[j];
-    inner_phi[innermult] = dBD[i].phi[j];
-    innermult++;
-  
-      }
-
-	for(auto& front : event->barcUp[i].fronts){
-        dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
-        dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
-	auto iter = m_chanMap.FindChannel(front.globalChannel);
-	if(iter == m_chanMap.End()){ std::cout << "channel map error, BUf" << std::endl;
-	}else{
-	    dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
-	    dBU[i].Fmult++;}
-	}
-    
-    for(j=0;j<dBU[i].Fmult;j++){
-        if(i==0){ dBU[0].phi[j] = 270;
-        }else if(i==5){ dBU[5].phi[j] = 330;
-        }else{ dBU[i].phi[j] = 270 - (i*60);
-        }
-        dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
-        // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
-
-	inner_E[innermult] = dBU[i].Fenergy[j];
-	inner_phi[innermult] = dBU[i].phi[j];
-	innermult++;
-    }
-} // end loop over 6
-
-
-// ***************************************************
-    // At this point, in each event, we know which strips fired, the multiplicity
-    // the timestamp and the energy.
-    // Still need to look at interstrip hits
-    // I think we could benefit from an inner (any barc) and outer multiplicity (SX3 or QQQ)
-    // but this is really just dE-E.
-    // And then sort these to get the biggest inner and outer.
-
-
-    
-    //                if(dBD[i].Fenergy[dBD[i].Fmult]>BDenergyMax){
-    //                    BDenergyMax = dBD[i].Fenergy[dBD[i].Fmult];
-    //                    BDnumMax = dBD[i].Fnum[dBD[i].Fmult];
-    //                    BDdetMax = i;
-    //                }
-    
-if (BUenergyMax>BDenergyMax){
-		dE = BUenergyMax;
-		dEtheta = BUnumMax; 
-}else{
-		dE = BDenergyMax;
-		dEtheta = BDnumMax;
-}
-
+   
+//
 // Coordinates of world: +x is beam left, +y is towards the ceiling, +z is the beam direction
 // For cylindrical coordinates: x = rho x cos(phi), y = rho x sin(phi), z = z.
 // where rho = sqrt (x*x + y*y)
@@ -313,3 +174,131 @@ outputfile->Close();
 delete inputfile;
 delete outputfile;
 }
+//for (int i=0;i<6;i++){
+//    dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1;
+//    for (int j=0; j<32;j++){
+//        dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
+//        dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
+//        dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
+//        dBU[i].Ftime[j] = -1;
+//}}
+
+//for (i=0;i<12;i++){
+//    dSX[i].Fmult = 0; dSX[i].Bmult = 0; dSX[i].detnum = -1;
+//    for(j=0;j<4;j++){
+//    dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1; // fronts will need to change (frontup/front down)
+//        dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[j] = -1.;
+//    dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
+//        dSX[i].Ftime[j] = -1; dSX[i].Btime[j] = -1;
+//}}
+
+// outermult = 0;
+//for (i=0;i<12;i++){
+//    // looping over detector number. Gordon separates his into detectors and strip is looked up if there's a hit
+//    for(auto& back : event->barrel[i].backs){
+//                if(ibool) std::cout << " detector " << i << std::endl;
+//        dSX[i].Benergy[dSX[i].Bmult] = back.energy;
+//        dSX[i].Btime[dSX[i].Bmult] = back.timestamp;
+//                if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
+//                if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
+//        auto iter = m_chanMap.FindChannel(back.globalChannel);
+//        if(iter == m_chanMap.End()){
+//            std::cout << "channel map error" << std::endl;
+//        }else{
+//            dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
+//                if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
+//            dSX[i].Bmult++;
+//                if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
+//        }}
+//
+//    for(j=0;j<dSX[i].Bmult;j++){
+//      if(i==0){ dSX[0].phi[j] = 247.5;
+//      }else if(i>0 && i<9){ dSX[i].phi[j] = 247.5 - (i*22.5);
+//      }else if(i==9){ dSX[9].phi[j] = 337.5;
+//      }else if(i==10){ dSX[10].phi[j] = 315.0;
+//      }else if(i==11){ dSX[11].phi[j] = 292.5;
+//      }
+//
+//      outer_E[outermult] = dSX[i].Benergy[j];
+//      outer_phi[outermult] = dSX[i].phi[j];
+//      outermult++;
+//    }
+// } //  end loop over 12
+// // need fronts
+
+
+// **************************************************************************************************
+// Fill barcelonas
+//
+//int innermult = 0;
+//for(i=0;i<6;i++){
+//     for(auto& front : event->barcDown[i].fronts){
+//        dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
+//        dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
+//        auto iter = m_chanMap.FindChannel(front.globalChannel);
+//        if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
+//        }else{
+//            dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
+//            dBD[i].Fmult++;}
+//    } // exit this loop with arrays of size mult, with detector number and strip
+//
+//    for(j=0;j<dBD[i].Fmult;j++){
+//        if(i==0){ dBD[0].phi[j] = 270;
+//        }else if(i==5){ dBD[5].phi[j] = 330;
+//        }else{ dBD[i].phi[j] = 270 - (i*60);
+//    }
+//    dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
+//      // +1 mm brings z to the centre of the strip
+//
+//    inner_E[innermult] = dBD[i].Fenergy[j];
+//    inner_phi[innermult] = dBD[i].phi[j];
+//    innermult++;
+//
+//      }
+//
+//    for(auto& front : event->barcUp[i].fronts){
+//        dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
+//        dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
+//    auto iter = m_chanMap.FindChannel(front.globalChannel);
+//    if(iter == m_chanMap.End()){ std::cout << "channel map error, BUf" << std::endl;
+//    }else{
+//        dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
+//        dBU[i].Fmult++;}
+//    }
+//
+//    for(j=0;j<dBU[i].Fmult;j++){
+//        if(i==0){ dBU[0].phi[j] = 270;
+//        }else if(i==5){ dBU[5].phi[j] = 330;
+//        }else{ dBU[i].phi[j] = 270 - (i*60);
+//        }
+//        dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
+//        // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
+//
+//    inner_E[innermult] = dBU[i].Fenergy[j];
+//    inner_phi[innermult] = dBU[i].phi[j];
+//    innermult++;
+//    }
+//} // end loop over 6
+// ***************************************************
+//    // At this point, in each event, we know which strips fired, the multiplicity
+//    // the timestamp and the energy.
+//    // Still need to look at interstrip hits
+//    // I think we could benefit from an inner (any barc) and outer multiplicity (SX3 or QQQ)
+//    // but this is really just dE-E.
+//    // And then sort these to get the biggest inner and outer.
+//
+//
+//
+//    //                if(dBD[i].Fenergy[dBD[i].Fmult]>BDenergyMax){
+//    //                    BDenergyMax = dBD[i].Fenergy[dBD[i].Fmult];
+//    //                    BDnumMax = dBD[i].Fnum[dBD[i].Fmult];
+//    //                    BDdetMax = i;
+//    //                }
+//
+//if (BUenergyMax>BDenergyMax){
+//        dE = BUenergyMax;
+//        dEtheta = BUnumMax;
+//}else{
+//        dE = BDenergyMax;
+//        dEtheta = BDnumMax;
+//}
