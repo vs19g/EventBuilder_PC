@@ -55,6 +55,7 @@ float Qz[10], Qrho[10], Qphi[10];
 int QFnum[10], QBnum[10];
 long QFtime[10], QBtime[10];
 
+bool ringHit;
 
 
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;

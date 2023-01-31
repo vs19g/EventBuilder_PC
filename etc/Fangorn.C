@@ -74,7 +74,15 @@ for (jentry=0; jentry<nevents; jentry++){
 //    outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
     
 // initialise everything
-
+for (int i=0;i<6;i++){
+    dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1; dBD[i].detnum = -1;
+        for (int j=0; j<32;j++){
+            dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
+            dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
+            dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
+            dBD[i].z[j] = -1.; dBD[i].phi[j] = -1000.; dBD[i].rho[j] = -1.;
+    }}
+    
 for(i=0; i<4;i++){
 	dQ[i].Fmult = 0; dQ[i].Bmult = 0; dQ[i].detnum = -1;
 	for(j=0;j<16;j++){
@@ -84,10 +92,11 @@ for(i=0; i<4;i++){
         dQ[i].Ftime[j] = -1; dQ[i].Btime[j] = -1;
 }}
 
+    ringHit = false;
 
 EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
-/**************************************************************************************/
+//****************************************************************************
 
 // Gordon's tree contains the following:
 // &event.fqqq[i].rings; &event.fqqq[i].wedges
@@ -98,10 +107,6 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // globalChannel; energy; timestamp
 // e.g. &event.fqqq[2].rings[3].energy
 
-// fill SX3s
-// BUTTTTTT Gordon feeds in FrontsUp and Fronts down. So you could read them both in and combine them here?! or not. 
-// Pattern is Down ch 0, 2, 5, 7; Up ch 1, 3, 4, 6
-// but the front multiplicity should be for the entire front strip, not the individual ends.
 
     for (i=0;i<4;i++){
         // fill ring data with energy, time, strip. coordinates later
@@ -116,7 +121,7 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
         }else{
             dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
 		if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
-	    dQ[i].Fmult++;
+            if(ring.energy>0){ dQ[i].Fmult++; ringHit = true;}
 		if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
         }}
     
@@ -137,6 +142,9 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
     } // end loop over 4.
     
         // now we have arrays of wedge&ring data. Maybe rho, phi and z are only calculated if conditions are met, i.e. energy threshold, ring had to fire, coincidence with barc, etc
+    
+if(ringHit){
+    // assign QQQ hit coordinates
     for(i=0;i<4;i++){
     for(j=0; j<dQ[i].Fmult; j++){
             dQ[i].z[j] = QQQzpos;
@@ -153,7 +161,51 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
         }
     }
    
-
+// Fill barcelonas
+    for(i=0;i<6;i++){
+         for(auto& front : event->barcDown[i].fronts){
+            dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
+            dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
+            auto iter = m_chanMap.FindChannel(front.globalChannel);
+            if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
+            }else{
+                dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
+            }
+             if(front.energy>0) dBD[i].Fmult++;
+        } // exit this loop with arrays of size mult, with detector number and strip
+    
+        for(j=0;j<dBD[i].Fmult;j++){
+            if(i==0){ dBD[0].phi[j] = 270;
+            }else if(i==5){ dBD[5].phi[j] = 330;
+            }else{ dBD[i].phi[j] = 270 - (i*60);
+        }
+        dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm.
+        //BDZoffset is distance from z=0 to edge of strip 0.
+        // +1 mm brings z to the centre of the strip
+    }
+    
+        for(auto& front : event->barcUp[i].fronts){
+            dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
+            dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
+        auto iter = m_chanMap.FindChannel(front.globalChannel);
+        if(iter == m_chanMap.End()){ std::cout << "channel map error, BUf" << std::endl;
+        }else{
+            dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
+        }
+         if(front.energy>0) dBU[i].Fmult++;
+        }
+    
+        for(j=0;j<dBU[i].Fmult;j++){
+            if(i==0){ dBU[0].phi[j] = 270;
+            }else if(i==5){ dBU[5].phi[j] = 330;
+            }else{ dBU[i].phi[j] = 270 - (i*60);
+            }
+            dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
+            // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
+        }
+    } // end loop over 6
+    // ***************************************************
+    
 // Coordinates of world: +x is beam left, +y is towards the ceiling, +z is the beam direction
 // For cylindrical coordinates: x = rho x cos(phi), y = rho x sin(phi), z = z.
 // where rho = sqrt (x*x + y*y)
@@ -163,14 +215,14 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // phi = -1*arcsin(y/rho) + pi, if x<0 && y>=0;
 // phi = -1*arcsin(y/rho)
 
-    
+} // end of ring=true condition
           
 //******************************************************
 outputfile->cd();
 //outT->Fill();
 if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
-} // end of event loop
+    } // end of event loop
 
 //outputfile->cd();
 //std::cout << "Printing" << std::endl; outT->Print();
@@ -182,14 +234,7 @@ outputfile->Close();
 delete inputfile;
 delete outputfile;
 }
-//for (int i=0;i<6;i++){
-//    dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1;
-//    for (int j=0; j<32;j++){
-//        dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
-//        dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
-//        dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
-//        dBU[i].Ftime[j] = -1;
-//}}
+
 
 //for (i=0;i<12;i++){
 //    dSX[i].Fmult = 0; dSX[i].Bmult = 0; dSX[i].detnum = -1;
@@ -236,58 +281,7 @@ delete outputfile;
 
 
 // **************************************************************************************************
-// Fill barcelonas
-//
-//int innermult = 0;
-//for(i=0;i<6;i++){
-//     for(auto& front : event->barcDown[i].fronts){
-//        dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
-//        dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
-//        auto iter = m_chanMap.FindChannel(front.globalChannel);
-//        if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
-//        }else{
-//            dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
-//            dBD[i].Fmult++;}
-//    } // exit this loop with arrays of size mult, with detector number and strip
-//
-//    for(j=0;j<dBD[i].Fmult;j++){
-//        if(i==0){ dBD[0].phi[j] = 270;
-//        }else if(i==5){ dBD[5].phi[j] = 330;
-//        }else{ dBD[i].phi[j] = 270 - (i*60);
-//    }
-//    dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm. BDZoffset is distance from z=0 to edge of strip 0.
-//      // +1 mm brings z to the centre of the strip
-//
-//    inner_E[innermult] = dBD[i].Fenergy[j];
-//    inner_phi[innermult] = dBD[i].phi[j];
-//    innermult++;
-//
-//      }
-//
-//    for(auto& front : event->barcUp[i].fronts){
-//        dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
-//        dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
-//    auto iter = m_chanMap.FindChannel(front.globalChannel);
-//    if(iter == m_chanMap.End()){ std::cout << "channel map error, BUf" << std::endl;
-//    }else{
-//        dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
-//        dBU[i].Fmult++;}
-//    }
-//
-//    for(j=0;j<dBU[i].Fmult;j++){
-//        if(i==0){ dBU[0].phi[j] = 270;
-//        }else if(i==5){ dBU[5].phi[j] = 330;
-//        }else{ dBU[i].phi[j] = 270 - (i*60);
-//        }
-//        dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
-//        // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
-//
-//    inner_E[innermult] = dBU[i].Fenergy[j];
-//    inner_phi[innermult] = dBU[i].phi[j];
-//    innermult++;
-//    }
-//} // end loop over 6
-// ***************************************************
+
 //    // At this point, in each event, we know which strips fired, the multiplicity
 //    // the timestamp and the energy.
 //    // Still need to look at interstrip hits
