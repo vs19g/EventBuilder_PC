@@ -56,11 +56,22 @@ for (jentry=0; jentry<nevents; jentry++){
 /**************************************************************************************/
 /***************** Call the exterminator! You've got bugs! ******************/
 /****************************/ bool ibool = 0; /**************************/
-/***************************/ bool summary = 0; /*****************************/
 /**************************************************************************************/
-
 /*************************************************************************************/
 //branches here? or call to it?
+//    outT->Branch("QFmult",&QFmult,"QFmult/i");
+//    outT->Branch("QBmult",&QBmult,"QBmult/i");
+//    outT->Branch("QFenergy",QFenergy,"QFenergy[QFmult]/f");
+//    outT->Branch("QBenergy",QBenergy,"QBenergy[QBmult]/f");
+//    outT->Branch("QFdetnum",QFdetnum,"QFdetnum[QFmult]/i");
+//    outT->Branch("QBdetnum",QBdetnum,"QBdetnum[QBmult]/i");
+//    outT->Branch("QFnum",QFnum,"QFnum[QFmult]/i");
+//    outT->Branch("QBnum",QBnum,"QBnum[QBmult]/i");
+//    outT->Branch("QFtime",QFtime,"QFtime[QFmult]/l");
+//    outT->Branch("QBtime",QBtime,"QBtime[QBmult]/l");
+//    outT->Branch("Qz",Qz,"Qz[QFmult]/f");
+//    outT->Branch("Qrho",Qrho,"Qrho[QFmult]/f");
+//    outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
     
 // initialise everything
 
@@ -92,9 +103,8 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Pattern is Down ch 0, 2, 5, 7; Up ch 1, 3, 4, 6
 // but the front multiplicity should be for the entire front strip, not the individual ends.
 
-//******************************************************************
-// fill QQQs
-for (i=0;i<4;i++){
+    for (i=0;i<4;i++){
+        // fill ring data with energy, time, strip. coordinates later
 	for(auto& ring : event->fqqq[i].rings){
             if(ibool) std::cout << "Entry " << jentry << " QQQ ring " << i << std::endl;
         dQ[i].Fenergy[dQ[i].Fmult] = ring.energy;
@@ -110,12 +120,6 @@ for (i=0;i<4;i++){
 		if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
         }}
     
-    for(j=0; j<dQ[i].Fmult; j++){
-        dQ[i].z[j] = Qz;
-        dQ[i].rho[j] = (dQ[i].Fnum[j]+0.5)*(0.099-0.0501)/16; // rho in mm
-        // rho is fixed for each ring
-        // phi is fixed by wedge
-    }
 	for(auto& wedge : event->fqqq[i].wedges){
                 if(ibool) std::cout << "QQQ wedge " << i << std::endl;
         dQ[i].Benergy[dQ[i].Bmult] = wedge.energy;
@@ -130,21 +134,26 @@ for (i=0;i<4;i++){
             dQ[i].Bmult++;
 				if(ibool) std::cout << "W mult after loop = " << dQ[i].Bmult << std::endl;
 }}
+    } // end loop over 4.
+    
+        // now we have arrays of wedge&ring data. Maybe rho, phi and z are only calculated if conditions are met, i.e. energy threshold, ring had to fire, coincidence with barc, etc
+    for(i=0;i<4;i++){
+    for(j=0; j<dQ[i].Fmult; j++){
+            dQ[i].z[j] = QQQzpos;
+            dQ[i].rho[j] = (dQ[i].Fnum[j]+0.5)*(0.099-0.0501)/16; // rho in mm
+            // rho is fixed for each ring
+        }
     for(j=0; j<dQ[i].Bmult; j++){
-     // z is the same for front & back
-     // rho is fixed by ring
         // each wedge is 5.625 deg, define centre of wedge as set phi
         if(i==2) dQ[2].phi[j] = ((15 - dQ[2].Bnum[j]) * 5.625) + 2.8125;
         else if (i==1) dQ[1].phi[j] = ((15 - dQ[1].Bnum[j]) * 5.625) + 92.8125;
         else if (i==0) dQ[0].phi[j] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
         else if (i==3) dQ[3].phi[j] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
             if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
+        }
     }
-    
-} // end loop over 4
-    
    
-//
+
 // Coordinates of world: +x is beam left, +y is towards the ceiling, +z is the beam direction
 // For cylindrical coordinates: x = rho x cos(phi), y = rho x sin(phi), z = z.
 // where rho = sqrt (x*x + y*y)
@@ -158,16 +167,15 @@ for (i=0;i<4;i++){
           
 //******************************************************
 outputfile->cd();
-outT->Fill();
-if(jentry%10000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
+//outT->Fill();
+if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
 } // end of event loop
-    
-//**************************************************************************************
-outputfile->cd();
-std::cout << "Printing" << std::endl; outT->Print();
-std::cout << "Writing" << std::endl; outT->Write();
-outputfile->Write();
+
+//outputfile->cd();
+//std::cout << "Printing" << std::endl; outT->Print();
+//std::cout << "Writing" << std::endl; outT->Write();
+//outputfile->Write();
 
 inputfile->Close();
 outputfile->Close();

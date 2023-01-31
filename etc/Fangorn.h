@@ -43,10 +43,17 @@
     int i, j;
     float BDzoffset = 120.; // mm, placeholder
     float BUzoffset = 200.; // mm, placeholder
-    float Qz = 50.; // mm, placeholder
+    float QQQzpos = 50.; // mm, placeholder
     int innermult, outermult;
     float inner_E[30], outer_E[30]; // no idea the size - this should be big enough though
     float inner_phi[30], outer_phi[30]; 
+
+int QFmult, QBmult;
+float QFenergy[10], QBenergy[10]; // chosen as an improbably high multiplicity
+int QFdetnum[10], QBdetnum[10]; // detector number
+float Qz[10], Qrho[10], Qphi[10];
+int QFnum[10], QBnum[10];
+long QFtime[10], QBtime[10];
 
 
 
