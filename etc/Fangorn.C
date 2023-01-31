@@ -215,11 +215,13 @@ if(ringHit){
 // phi = -1*arcsin(y/rho) + pi, if x<0 && y>=0;
 // phi = -1*arcsin(y/rho)
 
-} // end of ring=true condition
+
           
 //******************************************************
 outputfile->cd();
-//outT->Fill();
+outT->Fill();
+    } // end of ring=true condition
+    
 if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
     } // end of event loop
