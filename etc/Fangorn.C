@@ -61,6 +61,22 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("Qrho",Qrho,"Qrho[QFmult]/f");
     outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
     
+    outT->Branch("BUmult",&BUmult,"BUmult/i");
+    outT->Branch("BDmult",&BDmult,"BDmult/i");
+    outT->Branch("BUenergy",BUenergy,"BUenergy[BUmult]/f");
+    outT->Branch("BDenergy",BDenergy,"BDenergy[BDmult]/f");
+    outT->Branch("BUdetnum",BUdetnum,"BUdetnum[BUmult]/i");
+    outT->Branch("BDdetnum",BDdetnum,"BDdetnum[BDmult]/i");
+    outT->Branch("BUnum",BUnum,"BUnum[BUmult]/i");
+    outT->Branch("BDnum",BDnum,"BDnum[BDmult]/i");
+    outT->Branch("BUtime",BUtime,"BUtime[BUmult]/l");
+    outT->Branch("BDtime",BDtime,"BDtime[BDmult]/l");
+    outT->Branch("BUz",BUz,"BUz[BUmult]/f");
+    outT->Branch("BUrho",BUrho,"BUrho[BUmult]/f");
+    outT->Branch("BUphi",BUphi,"BUphi[BUmult]/f");
+    outT->Branch("BDz",BDz,"BDz[BDmult]/f");
+    outT->Branch("BDrho",BDrho,"BDrho[BDmult]/f");
+    outT->Branch("BDphi",BDphi,"BDphi[BDmult]/f");
     
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
@@ -80,8 +96,6 @@ for (int i=0;i<6;i++){
         for (int j=0; j<32;j++){
             dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
             dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
-            dBU[i].z[j] = -1.; dBU[i].phi[j] = -1000.; dBU[i].rho[j] = -1.;
-            dBD[i].z[j] = -1.; dBD[i].phi[j] = -1000.; dBD[i].rho[j] = -1.;
     }}
     
 for(i=0; i<4;i++){
@@ -89,18 +103,27 @@ for(i=0; i<4;i++){
 	for(j=0;j<16;j++){
 		dQ[i].Fnum[j] = -1; dQ[i].Bnum[j] = -1;
 		dQ[i].Fenergy[j] = -1.; dQ[i].Benergy[j] = -1.;
-        dQ[i].z[j] = -1.; dQ[i].rho[j] = -1; dQ[i].phi[j] = -1000;
         dQ[i].Ftime[j] = -1; dQ[i].Btime[j] = -1;
 }}
-
     ringHit = false;
     QFmult = QBmult = 0;
+    
     for(i=0;i<16;i++){
         QFenergy[i] = QBenergy[i] = -1.;
         QFdetnum[i] = QBdetnum[i] = -1;
         QFnum[i] = QBnum[i] = -1;
         QFtime[i] = QBtime[i] = -1.;
         Qz[i] = -1.; Qrho[i] = -1.; Qphi[i] = -1000.;
+    }
+    
+    BUmult = BDmult = 0;
+    for(i=0;i<32;i++){
+        BUenergy[i] = -1.; BDenergy[i] = -1.;
+        BUdetnum[i] = BDdetnum[i] = -1;
+        BUnum[i] = BDnum[i] = -1;
+        BUtime[i] = BDtime[i] = -1.;
+        BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
+        BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
     }
 
 EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
@@ -162,7 +185,7 @@ if(ringHit){
         QFdetnum[QFmult] = i;
         QFnum[QFmult] = dQ[i].Fnum[j];
         Qz[QFmult] = QQQzpos;
-        Qrho[QFmult]= (dQ[i].Fnum[j]+0.5)*(0.099-0.0501)/16; // rho in mm
+        Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
         QFmult++;
         }
     for(j=0; j<dQ[i].Bmult; j++){
@@ -171,11 +194,12 @@ if(ringHit){
         QBdetnum[QBmult] = i;
         QBnum[QBmult] = dQ[i].Bnum[j];
         // each wedge is 5.625 deg, define centre of wedge as set phi
-        if(i==2) Qphi[QBmult] = ((15 - dQ[2].Bnum[j]) * 5.625) + 2.8125;
-        else if (i==1) Qphi[QBmult] = ((15 - dQ[1].Bnum[j]) * 5.625) + 92.8125;
-        else if (i==0) Qphi[QBmult] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
-        else if (i==3) Qphi[QBmult] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
+        if(i==2) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 2.8125;
+        else if (i==1) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 92.8125;
+        else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
+        else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
             if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
+        QBmult++;
         }
     }
    
@@ -190,19 +214,10 @@ if(ringHit){
                 dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
             }
              if(front.energy>0) dBD[i].Fmult++;
-        } // exit this loop with arrays of size mult, with detector number and strip
-    
-        for(j=0;j<dBD[i].Fmult;j++){
-            if(i==0){ dBD[0].phi[j] = 270;
-            }else if(i==5){ dBD[5].phi[j] = 330;
-            }else{ dBD[i].phi[j] = 270 - (i*60);
         }
-        dBD[i].z[j] = BDzoffset + (dBD[i].Fnum[j]*2) + 1; // mm.
-        //BDZoffset is distance from z=0 to edge of strip 0.
-        // +1 mm brings z to the centre of the strip
-    }
+        // exit this loop with arrays of size mult, with detector number and strip
     
-    for(auto& front : event->barcUp[i].fronts){
+        for(auto& front : event->barcUp[i].fronts){
         dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
         dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
         auto iter = m_chanMap.FindChannel(front.globalChannel);
@@ -211,20 +226,42 @@ if(ringHit){
             }else{
                 dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
             }
-        if(front.energy>0) dBU[i].Fmult++;
+            if(front.energy>0) dBU[i].Fmult++;
         }
     
+        
+        for(j=0;j<dBD[i].Fmult;j++){
+            BDenergy[BDmult] = dBD[i].Fenergy[j];
+            BDdetnum[BDmult] = i;
+            BDnum[BDmult] = dBD[i].Fnum[j];
+            BDtime[BDmult] = dBD[i].Ftime[j];
+            
+            if(i==0){ BDphi[BDmult] = 270;
+            }else if(i==5){ BDphi[BDmult] = 330;
+            }else{ BDphi[BDmult] = 270 - (i*60);
+            }
+            BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
+            //BDZoffset is distance from z=0 to edge of strip 0.
+            // +1 mm brings z to the centre of the strip
+            BDmult++;
+        }
+        
         for(j=0;j<dBU[i].Fmult;j++){
-            if(i==0){ dBU[0].phi[j] = 270;
-                }else if(i==5){ dBU[5].phi[j] = 330;
-                }else{ dBU[i].phi[j] = 270 - (i*60);
+            BUenergy[BUmult] = dBU[i].Fenergy[j];
+            BUdetnum[BUmult] = i;
+            BUnum[BUmult] = dBU[i].Fnum[j];
+            BUtime[BUmult] = dBU[i].Ftime[j];
+            
+            if(i==0){ BUphi[BUmult] = 270;
+                }else if(i==5){ BUphi[BUmult] = 330;
+                }else{ BUphi[BUmult] = 270 - (i*60);
                 }
-            dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
+            BUz[BUmult] = BUzoffset + (2*(32-BUnum[BUmult])) + 1;
             // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
+            BUmult++;
         }
     } // end loop over 6
     // ***************************************************
-   // now, to condense to write fewer branches:
     
     
     

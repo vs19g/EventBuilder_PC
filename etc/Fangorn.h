@@ -57,6 +57,14 @@ long QFtime[16], QBtime[16];
 
 bool ringHit;
 
+int BUmult, BDmult;
+float BUenergy[32], BDenergy[32];
+int BUdetnum[32], BDdetnum[32];
+int BUnum[32], BDnum[32];
+long BUtime[32], BDtime[32];
+float BUz[32], BUrho[32], BUphi[32];
+float BDz[32], BDrho[32], BDphi[32];
+
 
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;
 //float QFenergyMax; int QFnumMax; int QFdetMax;
