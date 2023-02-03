@@ -46,7 +46,22 @@ TTree *outT = new TTree("TreeData","TreeData");
 std::cout<<"Opening "<<output_filename<<std::endl;
 
 /**************************************************************************************/
-
+    //branches here? or call to it?
+    outT->Branch("QFmult",&QFmult,"QFmult/i");
+    outT->Branch("QBmult",&QBmult,"QBmult/i");
+    outT->Branch("QFenergy",QFenergy,"QFenergy[QFmult]/f");
+    outT->Branch("QBenergy",QBenergy,"QBenergy[QBmult]/f");
+    outT->Branch("QFdetnum",QFdetnum,"QFdetnum[QFmult]/i");
+    outT->Branch("QBdetnum",QBdetnum,"QBdetnum[QBmult]/i");
+    outT->Branch("QFnum",QFnum,"QFnum[QFmult]/i");
+    outT->Branch("QBnum",QBnum,"QBnum[QBmult]/i");
+    outT->Branch("QFtime",QFtime,"QFtime[QFmult]/l");
+    outT->Branch("QBtime",QBtime,"QBtime[QBmult]/l");
+    outT->Branch("Qz",Qz,"Qz[QFmult]/f");
+    outT->Branch("Qrho",Qrho,"Qrho[QFmult]/f");
+    outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
+    
+    
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
 
@@ -58,21 +73,7 @@ for (jentry=0; jentry<nevents; jentry++){
 /****************************/ bool ibool = 0; /**************************/
 /**************************************************************************************/
 /*************************************************************************************/
-//branches here? or call to it?
-//    outT->Branch("QFmult",&QFmult,"QFmult/i");
-//    outT->Branch("QBmult",&QBmult,"QBmult/i");
-//    outT->Branch("QFenergy",QFenergy,"QFenergy[QFmult]/f");
-//    outT->Branch("QBenergy",QBenergy,"QBenergy[QBmult]/f");
-//    outT->Branch("QFdetnum",QFdetnum,"QFdetnum[QFmult]/i");
-//    outT->Branch("QBdetnum",QBdetnum,"QBdetnum[QBmult]/i");
-//    outT->Branch("QFnum",QFnum,"QFnum[QFmult]/i");
-//    outT->Branch("QBnum",QBnum,"QBnum[QBmult]/i");
-//    outT->Branch("QFtime",QFtime,"QFtime[QFmult]/l");
-//    outT->Branch("QBtime",QBtime,"QBtime[QBmult]/l");
-//    outT->Branch("Qz",Qz,"Qz[QFmult]/f");
-//    outT->Branch("Qrho",Qrho,"Qrho[QFmult]/f");
-//    outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
-    
+
 // initialise everything
 for (int i=0;i<6;i++){
     dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1; dBD[i].detnum = -1;
@@ -93,6 +94,14 @@ for(i=0; i<4;i++){
 }}
 
     ringHit = false;
+    QFmult = QBmult = 0;
+    for(i=0;i<10;i++){
+        QFenergy[i] = QBenergy[i] = -1.;
+        QFdetnum[i] = QBdetnum[i] = -1;
+        QFnum[i] = QBnum[i] = -1;
+        QFtime[i] = QBtime[i] = -1.;
+        Qz[i] = -1.; Qrho[i] = -1.; Qphi[i] = -1000.;
+    }
 
 EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
@@ -116,11 +125,11 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
         dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
                 if(ibool) std::cout << "dQ["<<i<<"].Fenergy["<<dQ[i].Fmult<<"] = " << dQ[i].Fenergy[dQ[i].Fmult] << std::endl;
         auto iter = m_chanMap.FindChannel(ring.globalChannel);
-        if(iter == m_chanMap.End()){
+            if(iter == m_chanMap.End()){
             std::cout << "channel map error, QQQr" << std::endl;
-        }else{
+            }else{
             dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
-		if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
+                if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
             if(ring.energy>0){ dQ[i].Fmult++; ringHit = true;}
 		if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
         }}
@@ -143,20 +152,29 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
     
         // now we have arrays of wedge&ring data. Maybe rho, phi and z are only calculated if conditions are met, i.e. energy threshold, ring had to fire, coincidence with barc, etc
     
-if(ringHit){
+/*if(ringHit){
     // assign QQQ hit coordinates
+    // condense for branch writing
     for(i=0;i<4;i++){
     for(j=0; j<dQ[i].Fmult; j++){
-            dQ[i].z[j] = QQQzpos;
-            dQ[i].rho[j] = (dQ[i].Fnum[j]+0.5)*(0.099-0.0501)/16; // rho in mm
-            // rho is fixed for each ring
+        QFenergy[QFmult] = dQ[i].Fenergy[j];
+        QFtime[QFmult] = dQ[i].Ftime[j];
+        QFdetnum[QFmult] = i;
+        QFnum[QFmult] = dQ[i].Fnum[j];
+        Qz[QFmult] = QQQzpos;
+        Qrho[QFmult]= (dQ[i].Fnum[j]+0.5)*(0.099-0.0501)/16; // rho in mm
+        QFmult++;
         }
     for(j=0; j<dQ[i].Bmult; j++){
+        QBenergy[QBmult] = dQ[i].Benergy[j];
+        QBtime[QBmult] = dQ[i].Btime[j];
+        QBdetnum[QBmult] = i;
+        QBnum[QBmult] = dQ[i].Bnum[j];
         // each wedge is 5.625 deg, define centre of wedge as set phi
-        if(i==2) dQ[2].phi[j] = ((15 - dQ[2].Bnum[j]) * 5.625) + 2.8125;
-        else if (i==1) dQ[1].phi[j] = ((15 - dQ[1].Bnum[j]) * 5.625) + 92.8125;
-        else if (i==0) dQ[0].phi[j] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
-        else if (i==3) dQ[3].phi[j] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
+        if(i==2) Qphi[QBmult] = ((15 - dQ[2].Bnum[j]) * 5.625) + 2.8125;
+        else if (i==1) Qphi[QBmult] = ((15 - dQ[1].Bnum[j]) * 5.625) + 92.8125;
+        else if (i==0) Qphi[QBmult] = ((15 - dQ[0].Bnum[j]) * 5.625) + 182.8125;
+        else if (i==3) Qphi[QBmult] = ((15 - dQ[3].Bnum[j]) * 5.625) + 272.8125;
             if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
         }
     }
@@ -184,27 +202,32 @@ if(ringHit){
         // +1 mm brings z to the centre of the strip
     }
     
-        for(auto& front : event->barcUp[i].fronts){
-            dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
-            dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
+    for(auto& front : event->barcUp[i].fronts){
+        dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
+        dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
         auto iter = m_chanMap.FindChannel(front.globalChannel);
-        if(iter == m_chanMap.End()){ std::cout << "channel map error, BUf" << std::endl;
-        }else{
-            dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
-        }
-         if(front.energy>0) dBU[i].Fmult++;
+            if(iter == m_chanMap.End()){
+                std::cout << "channel map error, BUf" << std::endl;
+            }else{
+                dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
+            }
+        if(front.energy>0) dBU[i].Fmult++;
         }
     
         for(j=0;j<dBU[i].Fmult;j++){
             if(i==0){ dBU[0].phi[j] = 270;
-            }else if(i==5){ dBU[5].phi[j] = 330;
-            }else{ dBU[i].phi[j] = 270 - (i*60);
-            }
+                }else if(i==5){ dBU[5].phi[j] = 330;
+                }else{ dBU[i].phi[j] = 270 - (i*60);
+                }
             dBU[i].z[j] = BUzoffset + (2*(32-dBU[i].Fnum[j])) + 1;
             // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
         }
     } // end loop over 6
     // ***************************************************
+   // now, to condense to write fewer branches:
+    
+    
+    
     
 // Coordinates of world: +x is beam left, +y is towards the ceiling, +z is the beam direction
 // For cylindrical coordinates: x = rho x cos(phi), y = rho x sin(phi), z = z.
@@ -217,19 +240,19 @@ if(ringHit){
 
 
           
-//******************************************************
+// *****************************************************
 outputfile->cd();
 outT->Fill();
     } // end of ring=true condition
-    
+*/
 if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
     } // end of event loop
 
-//outputfile->cd();
-//std::cout << "Printing" << std::endl; outT->Print();
-//std::cout << "Writing" << std::endl; outT->Write();
-//outputfile->Write();
+outputfile->cd();
+std::cout << "Printing" << std::endl; outT->Print();
+std::cout << "Writing" << std::endl; outT->Write();
+outputfile->Write();
 
 inputfile->Close();
 outputfile->Close();
