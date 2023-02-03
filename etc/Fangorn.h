@@ -49,11 +49,11 @@
     float inner_phi[30], outer_phi[30]; 
 
 int QFmult, QBmult;
-float QFenergy[10], QBenergy[10]; // chosen as an improbably high multiplicity
-int QFdetnum[10], QBdetnum[10]; // detector number
-float Qz[10], Qrho[10], Qphi[10];
-int QFnum[10], QBnum[10];
-long QFtime[10], QBtime[10];
+float QFenergy[16], QBenergy[16]; // chosen as an improbably high multiplicity
+int QFdetnum[16], QBdetnum[16]; // detector number
+float Qz[16], Qrho[16], Qphi[16];
+int QFnum[16], QBnum[16];
+long QFtime[16], QBtime[16];
 
 bool ringHit;
 

@@ -95,7 +95,7 @@ for(i=0; i<4;i++){
 
     ringHit = false;
     QFmult = QBmult = 0;
-    for(i=0;i<10;i++){
+    for(i=0;i<16;i++){
         QFenergy[i] = QBenergy[i] = -1.;
         QFdetnum[i] = QBdetnum[i] = -1;
         QFnum[i] = QBnum[i] = -1;
@@ -152,7 +152,7 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
     
         // now we have arrays of wedge&ring data. Maybe rho, phi and z are only calculated if conditions are met, i.e. energy threshold, ring had to fire, coincidence with barc, etc
     
-/*if(ringHit){
+if(ringHit){
     // assign QQQ hit coordinates
     // condense for branch writing
     for(i=0;i<4;i++){
@@ -244,7 +244,7 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 outputfile->cd();
 outT->Fill();
     } // end of ring=true condition
-*/
+
 if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
     } // end of event loop
