@@ -15,12 +15,9 @@ struct dataQ{ int Fmult; int Bmult; double Fenergy[16]; double Benergy[16]; doub
 struct dataBarcUp{ int Fmult; double Fenergy[32]; int Fnum[32]; float z[32]; float rho[32]; float phi[32]; double Ftime[32];};
 struct dataBarcDown{ int Fmult; double Fenergy[32]; int Fnum[32]; float z[32]; float rho[32]; float phi[32]; double Ftime[32];};
 
-float BDZoffset = 222.76; // mm, edge of strip 0 (most downstream strip)
-float BUZoffset = 122.65; // mm, edge of strip 0 (most upstream strip)
+float m_BDZoffset = 222.76; // mm, edge of strip 0 (most downstream strip)
+float m_BUZoffset = 122.65; // mm, edge of strip 0 (most upstream strip)
 
-float SXrho[12] = {89.0354, 89.0354, 89.0247, 89.0354, 89.0354, 89.0247,
-                   89.0354, 89.0354, 89.0247, 89.0354, 88.9871, 89.0601}; // mm; from Gordon
-
-float roughCal = 3.6; // keV/channel for QQQ only; rough calibration, same gain for all channels
+float m_roughCal = 3.6; // keV/channel for QQQ only; rough calibration, same gain for all channels
 
 #endif

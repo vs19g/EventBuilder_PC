@@ -41,12 +41,10 @@ if(tree == nullptr){
 	delete inputfile;
 	return;
 }
-CoincEvent* event = new CoincEvent();	
-tree->SetBranchAddress("event", &event);
 
 // ***** output file *****
 TFile* outputfile = TFile::Open(output_filename.c_str(), "UPDATE");
-TTree *outT = new TTree("TreeName","EventBuilder data with cylindrical coords");
+TTree *outT = new TTree("BarcQQQTreeData","EventBuilder data with cylindrical coords");
 std::cout<<"Opening "<<output_filename<<std::endl;
 
 // ***** initialize *****
@@ -207,36 +205,36 @@ outT->Branch("SXBdetMax",&SXBdetMax,"SXBdetMax/i"); // ... and its detector
 outT->Branch("QQQmult",&QQQmult,"QQQmult/i"); //store overall QQQ front multiplicity (for pruning)
 
 outT->Branch("Q0Fmult",&dQ[0].Fmult,"Q0Fmult/i"); outT->Branch("Q0Bmult",&dQ[0].Bmult,"Q0Bmult/i");
-outT->Branch("Q0Fnum",&dQ[0].Fnum,"Q0Fnum[Q0Fmult]/i"); outT->Branch("Q0Bnum",dQ[0].Bnum,"Q0Bnum[Q0Bmult]/i");
-outT->Branch("Q0Fenergy",dQ[0].Fenergy,"Q0Fenergy[Q0Fmult]/D"); outT->Branch("Q0Benergy",dQ[0].Benergy,"Q0Benergy[Q0Bmult]/D");
-outT->Branch("Q0FroughCal",dQ[0].FroughCal,"Q0FroughCal[Q0Fmult]/D"); outT->Branch("Q0BroughCal",dQ[0].BroughCal,"Q0BroughCal[Q0Bmult]/D");
+outT->Branch("Q0Fnum",&dQ[0].Fnum,"Q0Fnum[Q0Fmult]/i"); outT->Branch("Q0Bnum",&dQ[0].Bnum,"Q0Bnum[Q0Bmult]/i");
+outT->Branch("Q0Fenergy",&dQ[0].Fenergy,"Q0Fenergy[Q0Fmult]/D"); outT->Branch("Q0Benergy",&dQ[0].Benergy,"Q0Benergy[Q0Bmult]/D");
+outT->Branch("Q0FroughCal",&dQ[0].FroughCal,"Q0FroughCal[Q0Fmult]/D"); outT->Branch("Q0BroughCal",&dQ[0].BroughCal,"Q0BroughCal[Q0Bmult]/D");
 outT->Branch("Q0Btime",&dQ[0].Btime,"Q0Btime[Q0Bmult]/D"); //storing time from backs
 outT->Branch("Q0Ftime",&dQ[0].Ftime,"Q0Ftime[Q0Bmult]/D"); //storing time from fronts
 outT->Branch("Q0rho",&dQ[0].rho,"Q0rho[Q0Fmult]/F"); //rho from fronts
 outT->Branch("Q0phi",&dQ[0].phi,"Q0phi[Q0Bmult]/F"); //phi from backs
 
 outT->Branch("Q1Fmult",&dQ[1].Fmult,"Q1Fmult/i"); outT->Branch("Q1Bmult",&dQ[1].Bmult,"Q1Bmult/i");
-outT->Branch("Q1Fnum",dQ[1].Fnum,"Q1Fnum[Q1Fmult]/i"); outT->Branch("Q1Bnum",dQ[1].Bnum,"Q1Bnum[Q1Bmult]/i");
-outT->Branch("Q1Fenergy",dQ[1].Fenergy,"Q1Fenergy[Q1Fmult]/D"); outT->Branch("Q1Benergy",dQ[1].Benergy,"Q1Benergy[Q1Bmult]/D");
-outT->Branch("Q1FroughCal",dQ[1].FroughCal,"Q1FroughCal[Q1Fmult]/D"); outT->Branch("Q1BroughCal",dQ[1].BroughCal,"Q1BroughCal[Q1Bmult]/D");
+outT->Branch("Q1Fnum",&dQ[1].Fnum,"Q1Fnum[Q1Fmult]/i"); outT->Branch("Q1Bnum",&dQ[1].Bnum,"Q1Bnum[Q1Bmult]/i");
+outT->Branch("Q1Fenergy",&dQ[1].Fenergy,"Q1Fenergy[Q1Fmult]/D"); outT->Branch("Q1Benergy",&dQ[1].Benergy,"Q1Benergy[Q1Bmult]/D");
+outT->Branch("Q1FroughCal",&dQ[1].FroughCal,"Q1FroughCal[Q1Fmult]/D"); outT->Branch("Q1BroughCal",&dQ[1].BroughCal,"Q1BroughCal[Q1Bmult]/D");
 outT->Branch("Q1Btime",&dQ[1].Btime,"Q1Btime[Q1Bmult]/D"); //storing time from backs
 outT->Branch("Q1Ftime",&dQ[1].Ftime,"Q1Ftime[Q1Bmult]/D"); //storing time from fronts
 outT->Branch("Q1rho",&dQ[1].rho,"Q1rho[Q1Fmult]/F"); //rho from fronts
 outT->Branch("Q1phi",&dQ[1].phi,"Q1phi[Q1Bmult]/F"); //phi from backs
 
 outT->Branch("Q2Fmult",&dQ[2].Fmult,"Q2Fmult/i"); outT->Branch("Q2Bmult",&dQ[2].Bmult,"Q2Bmult/i");
-outT->Branch("Q2Fnum",dQ[2].Fnum,"Q2Fnum[Q2Fmult]/i"); outT->Branch("Q2Bnum",dQ[2].Bnum,"Q2Bnum[Q2Bmult]/i");
-outT->Branch("Q2Fenergy",dQ[2].Fenergy,"Q2Fenergy[Q2Fmult]/D"); outT->Branch("Q2Benergy",dQ[2].Benergy,"Q2Benergy[Q2Bmult]/D");
-outT->Branch("Q2FroughCal",dQ[2].FroughCal,"Q2FroughCal[Q2Fmult]/D"); outT->Branch("Q2BroughCal",dQ[2].BroughCal,"Q2BroughCal[Q2Bmult]/D");
+outT->Branch("Q2Fnum",&dQ[2].Fnum,"Q2Fnum[Q2Fmult]/i"); outT->Branch("Q2Bnum",&dQ[2].Bnum,"Q2Bnum[Q2Bmult]/i");
+outT->Branch("Q2Fenergy",&dQ[2].Fenergy,"Q2Fenergy[Q2Fmult]/D"); outT->Branch("Q2Benergy",&dQ[2].Benergy,"Q2Benergy[Q2Bmult]/D");
+outT->Branch("Q2FroughCal",&dQ[2].FroughCal,"Q2FroughCal[Q2Fmult]/D"); outT->Branch("Q2BroughCal",&dQ[2].BroughCal,"Q2BroughCal[Q2Bmult]/D");
 outT->Branch("Q2Btime",&dQ[2].Btime,"Q2Btime[Q2Bmult]/D"); //storing time from backs
 outT->Branch("Q2Ftime",&dQ[2].Ftime,"Q2Ftime[Q2Bmult]/D"); //storing time from fronts
 outT->Branch("Q2rho",&dQ[2].rho,"Q2rho[Q2Fmult]/F"); //rho from fronts
 outT->Branch("Q2phi",&dQ[2].phi,"Q2phi[Q2Bmult]/F"); //phi from backs
 
 outT->Branch("Q3Fmult",&dQ[3].Fmult,"Q3Fmult/i"); outT->Branch("Q3Bmult",&dQ[3].Bmult,"Q3Bmult/i");
-outT->Branch("Q3Fnum",dQ[3].Fnum,"Q3Fnum[Q3Fmult]/i"); outT->Branch("Q3Bnum",dQ[3].Bnum,"Q3Bnum[Q3Bmult]/i");
-outT->Branch("Q3Fenergy",dQ[3].Fenergy,"Q3Fenergy[Q3Fmult]/D"); outT->Branch("Q3Benergy",dQ[3].Benergy,"Q3Benergy[Q3Bmult]/D");
-outT->Branch("Q3FroughCal",dQ[3].FroughCal,"Q3FroughCal[Q3Fmult]/D"); outT->Branch("Q3BroughCal",dQ[3].BroughCal,"Q3BroughCal[Q3Bmult]/D");
+outT->Branch("Q3Fnum",&dQ[3].Fnum,"Q3Fnum[Q3Fmult]/i"); outT->Branch("Q3Bnum",&dQ[3].Bnum,"Q3Bnum[Q3Bmult]/i");
+outT->Branch("Q3Fenergy",&dQ[3].Fenergy,"Q3Fenergy[Q3Fmult]/D"); outT->Branch("Q3Benergy",&dQ[3].Benergy,"Q3Benergy[Q3Bmult]/D");
+outT->Branch("Q3FroughCal",&dQ[3].FroughCal,"Q3FroughCal[Q3Fmult]/D"); outT->Branch("Q3BroughCal",&dQ[3].BroughCal,"Q3BroughCal[Q3Bmult]/D");
 outT->Branch("Q3Btime",&dQ[3].Btime,"Q3Btime[Q3Bmult]/D"); //storing time from backs
 outT->Branch("Q3Ftime",&dQ[3].Ftime,"Q3Ftime[Q3Bmult]/D"); //storing time from fronts
 outT->Branch("Q3rho",&dQ[3].rho,"Q3rho[Q3Fmult]/F"); //rho from fronts
@@ -333,12 +331,13 @@ outT->Branch("BD5time",&dBD[5].Ftime,"BD5time[BD5Fmult]/D"); //storing time from
 outT->Branch("BD5phi",&dBD[5].phi,"BD5phi[BD5Fmult]/F"); //phi from barc #
 outT->Branch("BD5z",&dBD[5].z,"BD5z[BD5Fmult]/F"); //z from fronts
 
-
 /**************************************************************************************/
-tree->SetBranchAddress("event",&event);
-Long64_t nevents = tree->GetEntries();
-//Long64_t nevents = 50; //for testing only
-Long64_t jentry;
+CoincEvent* event = new CoincEvent();	
+tree->SetBranchAddress("event", &event);
+
+ULong64_t nevents = tree->GetEntries();
+//ULong64_t nevents = 50; //for testing only
+ULong64_t jentry;
 
 for (jentry=0; jentry<nevents; jentry++){
     tree->GetEntry(jentry);
@@ -435,7 +434,7 @@ if(ibool) std::cout << std::endl;
 // fill QQQs
 for (int i=0;i<4;i++){
 
-	//fix the fact that QQQ2&3 are swapped (for 18F runs)
+	//fixes the fact that QQQ2&3 are swapped (for 18F runs)
 	int iQQQ, iWedge, iRing;
 	switch(i){
 		case 0:
@@ -458,7 +457,7 @@ for (int i=0;i<4;i++){
 		if(ring.energy>0){
 			//store energy & timestamp
 			dQ[iQQQ].Fenergy[dQ[iQQQ].Fmult] = ring.energy;
-			dQ[iQQQ].FroughCal[dQ[iQQQ].Fmult] = ring.energy*roughCal;
+			dQ[iQQQ].FroughCal[dQ[iQQQ].Fmult] = ring.energy*m_roughCal;
 			dQ[iQQQ].Ftime[dQ[iQQQ].Fmult] = ring.timestamp;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Fenergy["<<dQ[iQQQ].Fmult<<"] = " << dQ[iQQQ].Fenergy[dQ[iQQQ].Fmult] << std::endl;
 			//assign Fnum to iRing (local strip number)
@@ -490,7 +489,7 @@ for (int i=0;i<4;i++){
 		if(wedge.energy>0){
 			//store energy & timestamp
 			dQ[iQQQ].Benergy[dQ[iQQQ].Bmult] = wedge.energy;
-			dQ[iQQQ].BroughCal[dQ[iQQQ].Bmult] = wedge.energy*roughCal;
+			dQ[iQQQ].BroughCal[dQ[iQQQ].Bmult] = wedge.energy*m_roughCal;
 			dQ[iQQQ].Btime[dQ[iQQQ].Bmult] = wedge.timestamp;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Benergy["<<dQ[iQQQ].Bmult<<"] = " << dQ[iQQQ].Benergy[dQ[iQQQ].Bmult] << std::endl;
 			//assign Fnum to iWedge (local strip number)
@@ -541,7 +540,7 @@ for(int i=0;i<6;i++){
 				if(ibool)std::cout << "dBD["<<i<<"].Fnum["<<dBD[i].Fmult<<"] = " << dBD[i].Fnum[dBD[i].Fmult] << std::endl;
 				//calculate physical coordinate(s)
 				float phi = 270. - (60.*i);
-				float z = BDZoffset - 2*(iFront+0.5); // mm, BDZoffset is distance from z=0 to downstream edge of strip 0
+				float z = m_BDZoffset - 2*(iFront+0.5); // mm, m_BDZoffset is distance from z=0 to downstream edge of strip 0
 				//store physical coordinate(s)
 				dBD[i].phi[dBD[i].Fmult] = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
 				dBD[i].z[dBD[i].Fmult] = z;
@@ -571,7 +570,7 @@ for(int i=0;i<6;i++){
 				if(ibool)std::cout << "dBU["<<i<<"].Fnum["<<dBU[i].Fmult<<"] = " << dBU[i].Fnum[dBU[i].Fmult] << std::endl;
 				//calculate physical coordinate(s)
 				float phi = 270. - (60.*i);
-				float z = BUZoffset + 2*(iFront+0.5); // mm, BUZoffset is distance from z=0 to upstream edge of strip 0
+				float z = m_BUZoffset + 2*(iFront+0.5); // mm, m_BUZoffset is distance from z=0 to upstream edge of strip 0
 				//store physical coordinate(s)
 				dBU[i].phi[dBU[i].Fmult] = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
 				dBU[i].z[dBU[i].Fmult] = z;
