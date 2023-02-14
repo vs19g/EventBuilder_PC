@@ -153,7 +153,7 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
             }else{
             dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
                 if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
-            if(ring.energy>0){ dQ[i].Fmult++; ringHit = true;}
+            if(ring.energy>50){ dQ[i].Fmult++; ringHit = true;}
 		if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
         }}
     
@@ -168,7 +168,7 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
         }else{
             dQ[i].Bnum[dQ[i].Bmult] = iter->second.local_channel;
                 if(ibool) std::cout << "dQ["<<i<<"].Bnum["<<dQ[i].Bmult<<"] = " << dQ[i].Bnum[dQ[i].Bmult] << std::endl;
-            dQ[i].Bmult++;
+            if(wedge.energy>50) dQ[i].Bmult++;
 				if(ibool) std::cout << "W mult after loop = " << dQ[i].Bmult << std::endl;
 }}
     } // end loop over 4.
@@ -178,17 +178,21 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 if(ringHit){
     // assign QQQ hit coordinates
     // condense for branch writing
-    for(i=0;i<4;i++){
+for(i=0;i<4;i++){
     for(j=0; j<dQ[i].Fmult; j++){
+        if(ibool) std::cout<< "QFmult preloop = " << QFmult << std::endl;
         QFenergy[QFmult] = dQ[i].Fenergy[j];
         QFtime[QFmult] = dQ[i].Ftime[j];
         QFdetnum[QFmult] = i;
         QFnum[QFmult] = dQ[i].Fnum[j];
         Qz[QFmult] = QQQzpos;
         Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
+        if(ibool){ std::cout << "E "<<QFenergy[QFmult]<<" t "<<QFtime[QFmult] << std::endl;
+            std::cout << "det "<<QFdetnum[QFmult]<<" strip "<<QFnum[QFmult]<<" z "<<Qz[QFmult]<<" rho "<<Qrho[QFmult]<<std::endl;}
         QFmult++;
         }
     for(j=0; j<dQ[i].Bmult; j++){
+        if(ibool) std::cout<< "QBmult preloop = " << QBmult << std::endl;
         QBenergy[QBmult] = dQ[i].Benergy[j];
         QBtime[QBmult] = dQ[i].Btime[j];
         QBdetnum[QBmult] = i;
@@ -198,7 +202,10 @@ if(ringHit){
         else if (i==1) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 92.8125;
         else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
         else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
-            if(ibool) std::cout << "dQ["<<i<<"].phi["<<j<<"] = " << dQ[i].phi[j] << std::endl;
+        if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
+            std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
+        
+        
         QBmult++;
         }
     }
