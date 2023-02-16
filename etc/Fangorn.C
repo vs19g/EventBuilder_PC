@@ -194,11 +194,6 @@ outT->Branch("SX11time",&dSX[11].Btime,"SX11time[SX11Bmult]/D"); //storing time 
 outT->Branch("SX11phi",&dSX[11].phi,"SX11phi[SX11Bmult]/F"); //phi from backs
 outT->Branch("SX11rho",&dSX[11].rho,"SX11rho[SX11Bmult]/F"); //rho from backs
 */
-/* do we need to write these to branches now?
-outT->Branch("SXBenergyMax",&SXBenergyMax,"SXBenergyMax/D"); // largest SX3 back energy
-outT->Branch("SXBnumMax",&SXBnumMax,"SXBnumMax/i"); // ... and its strip number
-outT->Branch("SXBdetMax",&SXBdetMax,"SXBdetMax/i"); // ... and its detector
-*/
 
 // QQQ branches
 
@@ -477,11 +472,10 @@ for (int i=0;i<4;i++){
 			dQ[iQQQ].rho[dQ[iQQQ].Fmult] = rho; //get rho from rings
 			//print coordinates
 			if(ibool) std::cout << "rho for ring "<<iRing<<" of QQQ "<<iQQQ<<" = " << dQ[iQQQ].rho[dQ[iQQQ].Fmult] << std::endl;
-			//increment multiplicity
+        	//increment multiplicity
 			dQ[iQQQ].Fmult++;
 			QQQmult++;
 			if(ibool) std::cout << "ring mult after loop = " << dQ[iQQQ].Fmult << std::endl;
-	
 	//still inside ring loop
 		}}
 	for(auto& wedge : event->fqqq[iQQQ].wedges){
@@ -505,7 +499,7 @@ for (int i=0;i<4;i++){
 			dQ[iQQQ].Bnum[dQ[iQQQ].Bmult] = iWedge;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Bnum["<<dQ[iQQQ].Bmult<<"] = " << dQ[iQQQ].Bnum[dQ[iQQQ].Bmult] << std::endl;
 			//calculate physical coordinate(s)
-			float phi = 270.-(90.*iQQQ) - (iWedge+0.5)*87.158/16.; //phi in degrees (center of wedge, includes dead space)
+			float phi = 267.158-(90.*iQQQ) - (iWedge+0.5)*87.158/16.; //phi in degrees (center of wedge, includes dead space)
 			//store physical coordinate(s)
 			dQ[iQQQ].phi[dQ[iQQQ].Bmult] = (phi < 0.) ? (phi + 360.) : (phi); //get phi from wedges; if phi < 0, then add 360
 			//print coordinates
@@ -513,7 +507,6 @@ for (int i=0;i<4;i++){
 			//increment multiplicity
 			dQ[iQQQ].Bmult++;
 			if(ibool) std::cout << "wedge mult after loop = " << dQ[iQQQ].Bmult << std::endl;
-	
 	//still inside wedge loop
 		}}
 } //end of QQQ loop
