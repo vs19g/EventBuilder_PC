@@ -86,26 +86,11 @@ for (jentry=0; jentry<nevents; jentry++){
 	
 /**************************************************************************************/
 /***************** Call the exterminator! You've got bugs! ******************/
-/****************************/ bool ibool = 0; /**************************/
+/****************************/ bool ibool = 0; /***************************/
 /**************************************************************************************/
 /*************************************************************************************/
 
-// initialise everything
-for (int i=0;i<6;i++){
-    dBD[i].Fmult = 0; dBU[i].Fmult = 0; dBU[i].detnum = -1; dBD[i].detnum = -1;
-        for (int j=0; j<32;j++){
-            dBD[i].Fenergy[j] = -1.; dBD[i].Fnum[j] = -1;
-            dBU[i].Fenergy[j] = -1.; dBU[i].Fnum[j] = -1;
-    }}
-    
-for(i=0; i<4;i++){
-	dQ[i].Fmult = 0; dQ[i].Bmult = 0; dQ[i].detnum = -1;
-	for(j=0;j<16;j++){
-		dQ[i].Fnum[j] = -1; dQ[i].Bnum[j] = -1;
-		dQ[i].Fenergy[j] = -1.; dQ[i].Benergy[j] = -1.;
-        dQ[i].Ftime[j] = -1; dQ[i].Btime[j] = -1;
-}}
-    ringHit = false;
+    ringHit = false; BUhit = false; BDhit = false;
     QFmult = QBmult = 0;
     
     for(i=0;i<16;i++){
@@ -115,11 +100,11 @@ for(i=0; i<4;i++){
         QFtime[i] = QBtime[i] = -1.;
         Qz[i] = -1.; Qrho[i] = -1.; Qphi[i] = -1000.;
     }
-    
+
     BUmult = BDmult = 0;
     for(i=0;i<32;i++){
         BUenergy[i] = -1.; BDenergy[i] = -1.;
-        BUdetnum[i] = BDdetnum[i] = -1;
+        BUdetnum[i] = 100; BDdetnum[i] = 100;
         BUnum[i] = BDnum[i] = -1;
         BUtime[i] = BDtime[i] = -1.;
         BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
@@ -139,135 +124,95 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
 // globalChannel; energy; timestamp
 // e.g. &event.fqqq[2].rings[3].energy
 
-
-    for (i=0;i<4;i++){
-        // fill ring data with energy, time, strip. coordinates later
-	for(auto& ring : event->fqqq[i].rings){
-            if(ibool) std::cout << "Entry " << jentry << " QQQ ring " << i << std::endl;
-        dQ[i].Fenergy[dQ[i].Fmult] = ring.energy;
-        dQ[i].Ftime[dQ[i].Fmult] = ring.timestamp;
-                if(ibool) std::cout << "dQ["<<i<<"].Fenergy["<<dQ[i].Fmult<<"] = " << dQ[i].Fenergy[dQ[i].Fmult] << std::endl;
-        auto iter = m_chanMap.FindChannel(ring.globalChannel);
+    for(i=0;i<4;i++){
+        for(auto& ring : event->fqqq[i].rings){
+          if(ibool) std::cout << std::endl << "Entry " << jentry << " QQQ ring " << i << std::endl;
+          QFenergy[QFmult] = ring.energy;
+          QFtime[QFmult] = ring.timestamp;
+          QFdetnum[QFmult] = i;
+            auto iter = m_chanMap.FindChannel(ring.globalChannel);
             if(iter == m_chanMap.End()){
             std::cout << "channel map error, QQQr" << std::endl;
             }else{
-            dQ[i].Fnum[dQ[i].Fmult] = iter->second.local_channel;
-                if(ibool) std::cout << "dQ["<<i<<"].Fnum["<<dQ[i].Fmult<<"] = " << dQ[i].Fnum[dQ[i].Fmult] << std::endl;
-            if(ring.energy>50){ dQ[i].Fmult++; ringHit = true;}
-		if(ibool) std::cout << "ring mult after loop = " << dQ[i].Fmult << std::endl;
+                QFnum[QFmult] = iter->second.local_channel;}
+            Qz[QFmult] = QQQzpos;
+                Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
+                if(ibool){ std::cout << "E "<<QFenergy[QFmult]<<" t "<<QFtime[QFmult] << std::endl;
+                    std::cout << "det "<<QFdetnum[QFmult]<<" strip "<<QFnum[QFmult]<<" z "<<Qz[QFmult]<<" rho "<<Qrho[QFmult]<<std::endl;}
+            if(ring.energy>50){ QFmult++; ringHit = true;}
         }}
-    
+
+
+    for(i=0;i<4;i++){
 	for(auto& wedge : event->fqqq[i].wedges){
                 if(ibool) std::cout << "QQQ wedge " << i << std::endl;
-        dQ[i].Benergy[dQ[i].Bmult] = wedge.energy;
-        dQ[i].Btime[dQ[i].Bmult] = wedge.timestamp;
-                if(ibool) std::cout << "dQ["<<i<<"].Benergy["<<dQ[i].Bmult<<"] = " << dQ[i].Benergy[dQ[i].Bmult] << std::endl;
-        auto iter = m_chanMap.FindChannel(wedge.globalChannel);
-        if(iter == m_chanMap.End()){
-				std::cout << "channel map error, QQQw" << std::endl;
-        }else{
-            dQ[i].Bnum[dQ[i].Bmult] = iter->second.local_channel;
-                if(ibool) std::cout << "dQ["<<i<<"].Bnum["<<dQ[i].Bmult<<"] = " << dQ[i].Bnum[dQ[i].Bmult] << std::endl;
-            if(wedge.energy>50) dQ[i].Bmult++;
-				if(ibool) std::cout << "W mult after loop = " << dQ[i].Bmult << std::endl;
-}}
-    } // end loop over 4.
-    
-        // now we have arrays of wedge&ring data. Maybe rho, phi and z are only calculated if conditions are met, i.e. energy threshold, ring had to fire, coincidence with barc, etc
-    
-if(ringHit){
-    // assign QQQ hit coordinates
-    // condense for branch writing
-for(i=0;i<4;i++){
-    for(j=0; j<dQ[i].Fmult; j++){
-        if(ibool) std::cout<< "QFmult preloop = " << QFmult << std::endl;
-        QFenergy[QFmult] = dQ[i].Fenergy[j];
-        QFtime[QFmult] = dQ[i].Ftime[j];
-        QFdetnum[QFmult] = i;
-        QFnum[QFmult] = dQ[i].Fnum[j];
-        Qz[QFmult] = QQQzpos;
-        Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
-        if(ibool){ std::cout << "E "<<QFenergy[QFmult]<<" t "<<QFtime[QFmult] << std::endl;
-            std::cout << "det "<<QFdetnum[QFmult]<<" strip "<<QFnum[QFmult]<<" z "<<Qz[QFmult]<<" rho "<<Qrho[QFmult]<<std::endl;}
-        QFmult++;
-        }
-    for(j=0; j<dQ[i].Bmult; j++){
-        if(ibool) std::cout<< "QBmult preloop = " << QBmult << std::endl;
-        QBenergy[QBmult] = dQ[i].Benergy[j];
-        QBtime[QBmult] = dQ[i].Btime[j];
+        QBenergy[QBmult] = wedge.energy;
+        QBtime[QBmult] = wedge.timestamp;
         QBdetnum[QBmult] = i;
-        QBnum[QBmult] = dQ[i].Bnum[j];
-        // each wedge is 5.625 deg, define centre of wedge as set phi
         if(i==2) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 2.8125;
         else if (i==1) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 92.8125;
         else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
         else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
-        if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
-            std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
         
-        
-        QBmult++;
+        auto iter = m_chanMap.FindChannel(wedge.globalChannel);
+        if(iter == m_chanMap.End()){
+				std::cout << "channel map error, QQQw" << std::endl;
+        }else{
+            QBnum[QBmult] = iter->second.local_channel;
+            
+    if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
+               std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
+            if(wedge.energy>50) QBmult++;
         }
     }
-   
+    } // end loop over 4.
+    
 // Fill barcelonas
+    if(ringHit){
     for(i=0;i<6;i++){
          for(auto& front : event->barcDown[i].fronts){
-            dBD[i].Fenergy[dBD[i].Fmult] = front.energy;
-            dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
+            BDenergy[BDmult] = front.energy;
+            BDtime[BDmult] = front.timestamp;
+            BDdetnum[BDmult] = i;
             auto iter = m_chanMap.FindChannel(front.globalChannel);
             if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
             }else{
-                dBD[i].Fnum[dBD[i].Fmult] = iter->second.local_channel;
-            }
-             if(front.energy>0) dBD[i].Fmult++;
-        }
-        // exit this loop with arrays of size mult, with detector number and strip
-    
-        for(auto& front : event->barcUp[i].fronts){
-        dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
-        dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
-        auto iter = m_chanMap.FindChannel(front.globalChannel);
-            if(iter == m_chanMap.End()){
-                std::cout << "channel map error, BUf" << std::endl;
-            }else{
-                dBU[i].Fnum[dBU[i].Fmult] = iter->second.local_channel;
-            }
-            if(front.energy>0) dBU[i].Fmult++;
-        }
-    
-        
-        for(j=0;j<dBD[i].Fmult;j++){
-            BDenergy[BDmult] = dBD[i].Fenergy[j];
-            BDdetnum[BDmult] = i;
-            BDnum[BDmult] = dBD[i].Fnum[j];
-            BDtime[BDmult] = dBD[i].Ftime[j];
-            
+                BDnum[BDmult] = iter->second.local_channel;}
             if(i==0){ BDphi[BDmult] = 270;
-            }else if(i==5){ BDphi[BDmult] = 330;
-            }else{ BDphi[BDmult] = 270 - (i*60);
-            }
-            BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
-            //BDZoffset is distance from z=0 to edge of strip 0.
-            // +1 mm brings z to the centre of the strip
-            BDmult++;
+             }else if(i==5){ BDphi[BDmult] = 330;
+             }else{ BDphi[BDmult] = 270 - (i*60);
+             }
+             BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
+             if(front.energy>0) BDmult++; BDhit = true;
+             
         }
-        
-        for(j=0;j<dBU[i].Fmult;j++){
-            BUenergy[BUmult] = dBU[i].Fenergy[j];
-            BUdetnum[BUmult] = i;
-            BUnum[BUmult] = dBU[i].Fnum[j];
-            BUtime[BUmult] = dBU[i].Ftime[j];
+    }
+    
+    if(ibool) std::cout << "postloop dBmult = " << BDmult << std::endl;
+    
+    for(i=0;i<6;i++){
+        for(auto& front : event->barcUp[i].fronts){
+               BUenergy[BUmult] = front.energy;
+               BUtime[BUmult] = front.timestamp;
+               BUdetnum[BUmult] = i;
             
+               auto iter = m_chanMap.FindChannel(front.globalChannel);
+                   if(iter == m_chanMap.End()){
+                       std::cout << "channel map error, BUf" << std::endl;
+                   }else{
+                       BUnum[BUmult] = iter->second.local_channel;
+                   }
             if(i==0){ BUphi[BUmult] = 270;
                 }else if(i==5){ BUphi[BUmult] = 330;
                 }else{ BUphi[BUmult] = 270 - (i*60);
                 }
             BUz[BUmult] = BUzoffset + (2*(32-BUnum[BUmult])) + 1;
-            // BUzoffset needs to be distance from z=0 to upstream end of strip 32.
-            BUmult++;
-        }
-    } // end loop over 6
+            if(front.energy>0) BUmult++; BUhit = true;
+               }
+ 
+    }// end loop over 6
+    //if(ibool) std::cout << "postloop BUmult = " << BUmult << std::endl;
+
     // ***************************************************
     
     
@@ -289,7 +234,7 @@ outputfile->cd();
 outT->Fill();
     } // end of ring=true condition
 
-if(jentry%1000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
+if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
     } // end of event loop
 

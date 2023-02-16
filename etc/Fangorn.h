@@ -7,38 +7,6 @@
 #include <iomanip>
 #include <iostream>
 
-// ***** definitions ***** // don't need to write all these to the tree, just global stuff?
-    struct dataSX{
-        int detnum; int Fmult; int Bmult;
-        float Fenergy[8]; float Benergy[4]; // is front 8 though? for near and far?
-        int Fnum[4]; int Bnum[4];
-        float z[4]; float rho[4]; float phi[4];
-        long Btime[4]; long Ftime[8];
-    };
-    struct dataQ{
-        int detnum; int Fmult; int Bmult;
-        float Fenergy[16]; float Benergy[16];
-        int Fnum[16]; int Bnum[16];
-        float z[16]; float rho[16]; float phi[16];
-        long Btime[16]; long Ftime[16];
-    };
-    struct dataBarcUp{
-        int detnum; int Fmult;
-        float Fenergy[32]; int Fnum[32];
-        float z[32]; float rho[32]; float phi[32];
-        long Ftime[32];
-    };
-    struct dataBarcDown{
-        int detnum; int Fmult;
-        float Fenergy[32]; int Fnum[32];
-        float z[32]; float rho[32]; float phi[32];
-        long Ftime[32];
-    };
-        
-    dataQ dQ[4]; // number of each type of detector
-    dataSX dSX[12];
-    dataBarcUp dBU[6];
-    dataBarcDown dBD[6]; // I think this is actually 5
 
     int i, j;
     float BDzoffset = 120.; // mm, placeholder
@@ -55,7 +23,7 @@ float Qz[16], Qrho[16], Qphi[16];
 int QFnum[16], QBnum[16];
 long QFtime[16], QBtime[16];
 
-bool ringHit;
+bool ringHit, BUhit, BDhit;
 
 int BUmult, BDmult;
 float BUenergy[32], BDenergy[32];
