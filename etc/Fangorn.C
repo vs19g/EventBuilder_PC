@@ -3,8 +3,6 @@
 #include "TTree.h"
 #include "TH1.h"
 #include "TH2.h"
-#include "../src/evb/ChannelMap.h"
-#include "../src/evb/ChannelMap.cpp"
 #include "../src/evbdict/DataStructs.h"
 #include <iostream>
 #include <fstream>
@@ -80,15 +78,22 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
+    
+    
+    // make channel map into a list of strip numbers:
+    // awk '{printf $5 ","}' ANASEN_TRIUMFAug_run21+_ChannelMap.txt
+    // printf = don't put new line; $5 = 5th column, then put comma.
+    // note there were channels missing; they now read strip 100, because chan number = array element.
+    int lookUp[640]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 
 for (jentry=0; jentry<nevents; jentry++){
     tree->GetEntry(jentry);
 	
-/**************************************************************************************/
-/***************** Call the exterminator! You've got bugs! ******************/
-/****************************/ bool ibool = 0; /***************************/
-/**************************************************************************************/
-/*************************************************************************************/
+//************************************************************************************
+//*************** Call the exterminator! You've got bugs! ******************
+/* ************************ */ bool ibool = 0; /* ************************* */
+//************************************************************************************
+//***********************************************************************************
 
     ringHit = false; BUhit = false; BDhit = false;
     QFmult = QBmult = 0;
@@ -110,9 +115,8 @@ for (jentry=0; jentry<nevents; jentry++){
         BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
         BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
     }
+    QFval = 100; QBval = 100; BUval = 100; BDval = 100;
 
-EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
-// Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
 //****************************************************************************
 
 // Gordon's tree contains the following:
@@ -130,17 +134,16 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
           QFenergy[QFmult] = ring.energy;
           QFtime[QFmult] = ring.timestamp;
           QFdetnum[QFmult] = i;
-            auto iter = m_chanMap.FindChannel(ring.globalChannel);
-            if(iter == m_chanMap.End()){
-            std::cout << "channel map error, QQQr" << std::endl;
-            }else{
-                QFnum[QFmult] = iter->second.local_channel;}
+          QFval = ring.globalChannel;
+          QFnum[QFmult] = lookUp[QFval];
+            
             Qz[QFmult] = QQQzpos;
                 Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
                 if(ibool){ std::cout << "E "<<QFenergy[QFmult]<<" t "<<QFtime[QFmult] << std::endl;
                     std::cout << "det "<<QFdetnum[QFmult]<<" strip "<<QFnum[QFmult]<<" z "<<Qz[QFmult]<<" rho "<<Qrho[QFmult]<<std::endl;}
             if(ring.energy>50){ QFmult++; ringHit = true;}
-        }}
+        }
+    }
 
 
     for(i=0;i<4;i++){
@@ -154,17 +157,13 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
         else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
         else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
         
-        auto iter = m_chanMap.FindChannel(wedge.globalChannel);
-        if(iter == m_chanMap.End()){
-				std::cout << "channel map error, QQQw" << std::endl;
-        }else{
-            QBnum[QBmult] = iter->second.local_channel;
+        QBval = lookUp[wedge.globalChannel];
+        QBnum[QBmult] = QBval;
             
     if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
                std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
             if(wedge.energy>50) QBmult++;
         }
-    }
     } // end loop over 4.
     
 // Fill barcelonas
@@ -174,17 +173,15 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
             BDenergy[BDmult] = front.energy;
             BDtime[BDmult] = front.timestamp;
             BDdetnum[BDmult] = i;
-            auto iter = m_chanMap.FindChannel(front.globalChannel);
-            if(iter == m_chanMap.End()){ std::cout << "channel map error, bdF" << std::endl;
-            }else{
-                BDnum[BDmult] = iter->second.local_channel;}
+            BDval = lookUp[front.globalChannel];
+            BDnum[BDmult] = BDval;
+             
             if(i==0){ BDphi[BDmult] = 270;
              }else if(i==5){ BDphi[BDmult] = 330;
              }else{ BDphi[BDmult] = 270 - (i*60);
              }
              BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
              if(front.energy>0) BDmult++; BDhit = true;
-             
         }
     }
     
@@ -192,16 +189,12 @@ EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
     
     for(i=0;i<6;i++){
         for(auto& front : event->barcUp[i].fronts){
-               BUenergy[BUmult] = front.energy;
-               BUtime[BUmult] = front.timestamp;
-               BUdetnum[BUmult] = i;
+            BUenergy[BUmult] = front.energy;
+            BUtime[BUmult] = front.timestamp;
+            BUdetnum[BUmult] = i;
+            BUval = lookUp[front.globalChannel];
+            BUnum[BUmult] = BUval;
             
-               auto iter = m_chanMap.FindChannel(front.globalChannel);
-                   if(iter == m_chanMap.End()){
-                       std::cout << "channel map error, BUf" << std::endl;
-                   }else{
-                       BUnum[BUmult] = iter->second.local_channel;
-                   }
             if(i==0){ BUphi[BUmult] = 270;
                 }else if(i==5){ BUphi[BUmult] = 330;
                 }else{ BUphi[BUmult] = 270 - (i*60);
@@ -318,3 +311,7 @@ delete outputfile;
 //        dE = BDenergyMax;
 //        dEtheta = BDnumMax;
 //}
+
+/*
+   int lookUp[640] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+ */
