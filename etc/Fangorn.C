@@ -58,6 +58,7 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("Qz",Qz,"Qz[QFmult]/f");
     outT->Branch("Qrho",Qrho,"Qrho[QFmult]/f");
     outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
+    outT->Branch("Qtheta",Qtheta,"Qtheta[QFmult]/f");
     
     outT->Branch("BUmult",&BUmult,"BUmult/i");
     outT->Branch("BDmult",&BDmult,"BDmult/i");
@@ -98,22 +99,24 @@ for (jentry=0; jentry<nevents; jentry++){
     ringHit = false; BUhit = false; BDhit = false;
     QFmult = QBmult = 0;
     
-    for(i=0;i<16;i++){
+    for(i=0;i<40;i++){
         QFenergy[i] = QBenergy[i] = -1.;
         QFdetnum[i] = QBdetnum[i] = -1;
         QFnum[i] = QBnum[i] = -1;
         QFtime[i] = QBtime[i] = -1.;
         Qz[i] = -1.; Qrho[i] = -1.; Qphi[i] = -1000.;
+        Qtheta[i] = -1000.;
     }
 
     BUmult = BDmult = 0;
-    for(i=0;i<32;i++){
+    for(i=0;i<60;i++){
         BUenergy[i] = -1.; BDenergy[i] = -1.;
         BUdetnum[i] = 100; BDdetnum[i] = 100;
         BUnum[i] = BDnum[i] = -1;
         BUtime[i] = BDtime[i] = -1.;
         BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
         BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
+        BUtheta[i] = -1000.; BDtheta[i] = -1000.;
     }
     
 //****************************************************************************
@@ -130,40 +133,68 @@ for (jentry=0; jentry<nevents; jentry++){
     for(i=0;i<4;i++){
         for(auto& ring : event->fqqq[i].rings){
         if(ibool) std::cout << std::endl << "Entry " << jentry << " QQQ ring " << i << std::endl;
-          QFenergy[QFmult] = ring.energy;
-          QFtime[QFmult] = ring.timestamp;
+          if(ring.energy>50){
+            QFenergy[QFmult] = ring.energy;
+            QFtime[QFmult] = ring.timestamp;
             
-            if(i==2){QFdetnum[QFmult] = 3;} // need to swap QQQ2 & 3
-            else if(i==3){QFdetnum[QFmult] = 2;}
-            else{QFdetnum[QFmult] = i;}
+            if(i==2){ // need to swap QQQ2 & 3
+                QFdetnum[QFmult] = 3;
+            } else if(i==3){
+                QFdetnum[QFmult] = 2;
+            } else{
+                QFdetnum[QFmult] = i;
+            }
             
-          QFnum[QFmult] = lookUp[ring.globalChannel];
+              // swapping ring count direction for QQQ0&2
+            if(QFdetnum[QFmult]==0||QFdetnum[QFmult]==2){
+                QFnum[QFmult] = 15 - lookUp[ring.globalChannel];
+            }else{
+                QFnum[QFmult] = lookUp[ring.globalChannel];
+             }
    
             Qz[QFmult] = QQQzpos;
-                Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
-                if(ibool){ std::cout << "E "<<QFenergy[QFmult]<<" t "<<QFtime[QFmult] << std::endl;
-                    std::cout << "det "<<QFdetnum[QFmult]<<" strip "<<QFnum[QFmult]<<" z "<<Qz[QFmult]<<" rho "<<Qrho[QFmult]<<std::endl;}
-            if(ring.energy>50){ QFmult++; ringHit = true;}
+            Qrho[QFmult]= 50.1 + (QFnum[QFmult]+0.5)*(99.-50.1)/16.; // rho in mm
+            Qtheta[QFmult] = TMath::ATan2(Qrho[QFmult],Qz[QFmult])*180./TMath::Pi(); // degrees
+              
+        if(ibool){ std::cout << "E " << QFenergy[QFmult] << " t " << QFtime[QFmult] << std::endl;
+            std::cout << "det " << QFdetnum[QFmult] << " strip " << QFnum[QFmult] << " z " <<Qz[QFmult];
+            std::cout <<" rho " << Qrho[QFmult] << " theta " << Qtheta[QFmult] << std::endl;}
+             QFmult++; ringHit = true;
+                                               
+            }
         }
     }
 
 
     for(i=0;i<4;i++){
 	for(auto& wedge : event->fqqq[i].wedges){
+    if(wedge.energy>50){
         if(ibool) std::cout << "QQQ wedge " << i << std::endl;
         QBenergy[QBmult] = wedge.energy;
         QBtime[QBmult] = wedge.timestamp;
-        QBdetnum[QBmult] = i;
-        if(i==2) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 2.8125;
-        else if (i==1) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 92.8125;
-        else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
-        else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
+       
+        if(i==2){QBdetnum[QBmult] = 3;} // need to swap QQQ2 & 3
+        else if(i==3){QBdetnum[QBmult] = 2;}
+        else{QBdetnum[QBmult] = i;}
         
-        QBnum[QBmult] = lookUp[wedge.globalChannel];
+        // swapping wedge count direction for QQQ0&2
+            if(QBdetnum[QBmult]==0||QBdetnum[QBmult]==2){
+                QBnum[QBmult] = 15 - lookUp[wedge.globalChannel];
+            }else{
+                QBnum[QBmult] = lookUp[wedge.globalChannel];
+            }
      
+//         if(i==2) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 2.8125;
+//         else if (i==1) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 92.8125;
+//         else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
+//         else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
+            
+        int phi = 267.158-(90.*QBdetnum[QBmult]) - (QBnum[QBmult]+0.5)*87.158/16.; // Keilah's way
+        Qphi[QBmult] = (phi < 0.) ? (phi + 360.) : (phi); //get phi from wedges; if phi < 0, then add 360
     if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
                std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
-            if(wedge.energy>50) QBmult++;
+             QBmult++;
+            }
         }
     } // end loop over 4.
     
@@ -180,7 +211,7 @@ for (jentry=0; jentry<nevents; jentry++){
              }else if(i==5){ BDphi[BDmult] = 330;
              }else{ BDphi[BDmult] = 270 - (i*60);
              }
-             BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
+             BDz[BDmult] = BDZoffset + (BDnum[BDmult]*2) + 1; // mm.
              if(front.energy>0) BDmult++; BDhit = true;
         }
     }
@@ -198,7 +229,7 @@ for (jentry=0; jentry<nevents; jentry++){
                 }else if(i==5){ BUphi[BUmult] = 330;
                 }else{ BUphi[BUmult] = 270 - (i*60);
                 }
-            BUz[BUmult] = BUzoffset + (2*(32-BUnum[BUmult])) + 1;
+            BUz[BUmult] = BUZoffset + (2*(32-BUnum[BUmult])) + 1;
             if(front.energy>0) BUmult++; BUhit = true;
                }
  

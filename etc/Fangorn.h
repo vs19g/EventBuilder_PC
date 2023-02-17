@@ -9,29 +9,30 @@
 
 
     int i, j;
-    float BDzoffset = 120.; // mm, placeholder
-    float BUzoffset = 200.; // mm, placeholder
-    float QQQzpos = 50.; // mm, placeholder
+    float BDZoffset = 222.76+40.; // mm, edge of strip 0 (most downstream strip) //40mm offset until measurement comes
+    float BUZoffset = 122.65; // mm, edge of strip 0 (most upstream strip)
+    float QQQzpos = 296.; // mm
     int innermult, outermult;
     float inner_E[30], outer_E[30]; // no idea the size - this should be big enough though
     float inner_phi[30], outer_phi[30]; 
 
 int QFmult, QBmult;
-float QFenergy[16], QBenergy[16]; // chosen as an improbably high multiplicity
-int QFdetnum[16], QBdetnum[16]; // detector number
-float Qz[16], Qrho[16], Qphi[16];
-int QFnum[16], QBnum[16];
-long QFtime[16], QBtime[16];
+float QFenergy[40], QBenergy[40]; // chosen as an improbably high multiplicity
+int QFdetnum[40], QBdetnum[40]; // detector number
+float Qz[40], Qrho[40], Qphi[40], Qtheta[40];
+int QFnum[40], QBnum[40];
+long QFtime[40], QBtime[40];
 
 bool ringHit, BUhit, BDhit;
 
 int BUmult, BDmult;
-float BUenergy[32], BDenergy[32];
-int BUdetnum[32], BDdetnum[32];
-int BUnum[32], BDnum[32];
-long BUtime[32], BDtime[32];
-float BUz[32], BUrho[32], BUphi[32];
-float BDz[32], BDrho[32], BDphi[32];
+float BUenergy[60], BDenergy[60];
+int BUdetnum[60], BDdetnum[60];
+int BUnum[60], BDnum[60];
+long BUtime[60], BDtime[32];
+float BUz[60], BUrho[60], BUphi[60];
+float BDz[60], BDrho[60], BDphi[60];
+float BUtheta[60], BDtheta[60];
 
 
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;
