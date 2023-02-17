@@ -19,7 +19,7 @@
 int QFmult, QBmult;
 float QFenergy[40], QBenergy[40]; // chosen as an improbably high multiplicity
 int QFdetnum[40], QBdetnum[40]; // detector number
-float Qz[40], Qrho[40], Qphi[40], Qtheta[40];
+float Qz[40], Qrho[40], Qphi[40];
 int QFnum[40], QBnum[40];
 long QFtime[40], QBtime[40];
 
@@ -32,7 +32,6 @@ int BUnum[60], BDnum[60];
 long BUtime[60], BDtime[32];
 float BUz[60], BUrho[60], BUphi[60];
 float BDz[60], BDrho[60], BDphi[60];
-float BUtheta[60], BDtheta[60];
 
 
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;

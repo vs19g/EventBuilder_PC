@@ -76,6 +76,8 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("BDz",BDz,"BDz[BDmult]/f");
     outT->Branch("BDrho",BDrho,"BDrho[BDmult]/f");
     outT->Branch("BDphi",BDphi,"BDphi[BDmult]/f");
+    outT->Branch("BDtheta",BDtheta,"BDtheta[BDmult]/f");
+    outT->Branch("BUtheta",BUtheta,"BUtheta[BUmult]/f");
     
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
@@ -92,7 +94,7 @@ for (jentry=0; jentry<nevents; jentry++){
 	
 //*************************************************************************
 //*************** Call the exterminator! You've got bugs! *****************
-/* ************************ */ bool ibool = 0; /* ************************* */
+/* ************************ */ bool ibool = 0; /* ********************** */
 //*************************************************************************
 //*************************************************************************
 
@@ -105,7 +107,6 @@ for (jentry=0; jentry<nevents; jentry++){
         QFnum[i] = QBnum[i] = -1;
         QFtime[i] = QBtime[i] = -1.;
         Qz[i] = -1.; Qrho[i] = -1.; Qphi[i] = -1000.;
-        Qtheta[i] = -1000.;
     }
 
     BUmult = BDmult = 0;
@@ -116,7 +117,6 @@ for (jentry=0; jentry<nevents; jentry++){
         BUtime[i] = BDtime[i] = -1.;
         BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
         BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
-        BUtheta[i] = -1000.; BDtheta[i] = -1000.;
     }
     
 //****************************************************************************
@@ -154,9 +154,8 @@ for (jentry=0; jentry<nevents; jentry++){
    
             Qz[QFmult] = QQQzpos;
             Qrho[QFmult]= 50.1 + (QFnum[QFmult]+0.5)*(99.-50.1)/16.; // rho in mm
-            Qtheta[QFmult] = TMath::ATan2(Qrho[QFmult],Qz[QFmult])*180./TMath::Pi(); // degrees
-              
-        if(ibool){ std::cout << "E " << QFenergy[QFmult] << " t " << QFtime[QFmult] << std::endl;
+            
+            if(ibool){ std::cout << "E " << QFenergy[QFmult] << " t " << QFtime[QFmult] << std::endl;
             std::cout << "det " << QFdetnum[QFmult] << " strip " << QFnum[QFmult] << " z " <<Qz[QFmult];
             std::cout <<" rho " << Qrho[QFmult] << " theta " << Qtheta[QFmult] << std::endl;}
              QFmult++; ringHit = true;
@@ -183,14 +182,9 @@ for (jentry=0; jentry<nevents; jentry++){
             }else{
                 QBnum[QBmult] = lookUp[wedge.globalChannel];
             }
-     
-//         if(i==2) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 2.8125;
-//         else if (i==1) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 92.8125;
-//         else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
-//         else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
-            
-        int phi = 267.158-(90.*QBdetnum[QBmult]) - (QBnum[QBmult]+0.5)*87.158/16.; // Keilah's way
-        Qphi[QBmult] = (phi < 0.) ? (phi + 360.) : (phi); //get phi from wedges; if phi < 0, then add 360
+                 
+        float phiqb = 267.158-(90.*QBdetnum[QBmult]) - (QBnum[QBmult]+0.5)*87.158/16.; // Keilah's way
+        Qphi[QBmult] = (phiqb < 0.) ? (phiqb + 360.) : (phiqb); //get phi from wedges; if phi < 0, then add 360
     if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
                std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
              QBmult++;
@@ -201,38 +195,37 @@ for (jentry=0; jentry<nevents; jentry++){
 // Fill barcelonas
     if(ringHit){
     for(i=0;i<6;i++){
-         for(auto& front : event->barcDown[i].fronts){
+     for(auto& front : event->barcDown[i].fronts){
+        if(front.energy>0){
             BDenergy[BDmult] = front.energy;
             BDtime[BDmult] = front.timestamp;
             BDdetnum[BDmult] = i;
             BDnum[BDmult] = lookUp[front.globalChannel];
-            
-             if(i==0){ BDphi[BDmult] = 270;
-             }else if(i==5){ BDphi[BDmult] = 330;
-             }else{ BDphi[BDmult] = 270 - (i*60);
-             }
-             BDz[BDmult] = BDZoffset + (BDnum[BDmult]*2) + 1; // mm.
-             if(front.energy>0) BDmult++; BDhit = true;
+            float phibd = 270. - (60*BDdetnum[BDmult]);
+            BDphi[BDmult] = (phibd<0.) ? (phibd+360.) : (phibd);
+            BDrho[BDmult] = 30.;
+            BDz[BDmult] = BDZoffset - 2*(BDnum[BDmult] + 0.5); // mm.
+            BDmult++; BDhit = true;
+        }
         }
     }
     
     if(ibool) std::cout << "postloop dBmult = " << BDmult << std::endl;
     
     for(i=0;i<6;i++){
-        for(auto& front : event->barcUp[i].fronts){
+     for(auto& front : event->barcUp[i].fronts){
+         if(front.energy>0){
             BUenergy[BUmult] = front.energy;
             BUtime[BUmult] = front.timestamp;
             BUdetnum[BUmult] = i;
             BUnum[BUmult] = lookUp[front.globalChannel];
-            
-            if(i==0){ BUphi[BUmult] = 270;
-                }else if(i==5){ BUphi[BUmult] = 330;
-                }else{ BUphi[BUmult] = 270 - (i*60);
-                }
-            BUz[BUmult] = BUZoffset + (2*(32-BUnum[BUmult])) + 1;
-            if(front.energy>0) BUmult++; BUhit = true;
+            float phibu = 270. - (60.*BUdetnum[BUmult]);
+            BUphi[BUmult] = (phibu<0.) ? (phibu+360.) : (phibu);
+            BUz[BUmult] = BUZoffset + 2*(BUnum[BUmult]+0.5);
+            BUrho[BUmult] = 30.;
+            BUmult++; BUhit = true;
                }
- 
+     }
     }// end loop over 6
     if(ibool) std::cout << "postloop BUmult = " << BUmult << std::endl;
 
@@ -299,3 +292,5 @@ delete outputfile;
 //        dEtheta = BDnumMax;
 //}
 
+//m_SXrho[12] = {89.0354, 89.0354, 89.0247, 89.0354, 89.0354, 89.0247,
+//89.0354, 89.0354, 89.0247, 89.0354, 88.9871, 89.0601}; // mm; from Gordon
