@@ -56,7 +56,7 @@ void Reconstruct(int runNumber)
 
 	// ***** initialize *****
 	uint dEmult, dEstrip, EmultF, EmultB, EstripF, EstripB;
-	int dEdet, Edet, flagB, flagQ, flagUpDn;
+	int dEdet, Edet, flagB, flagQf, flagQb, flagUpDn;
 	float dEz, dEphi, dErho, Ez, Ephi, Erho, IntZ, IntTheta, IntPath;
 	double dEtime, dE, EtFront, EtBack, Ef, Eb, EroughF, EroughB; 
 
@@ -65,7 +65,8 @@ void Reconstruct(int runNumber)
 
 	// ***** output tree *****
 	outTree->Branch("EntryNo",&entryNum,"EntryNo/l"); // row of pruned tree
-	outTree->Branch("flagQ",&flagQ,"flagQ/I"); // see flag key in event loop
+	outTree->Branch("flagQf",&flagQf,"flagQf/I"); // for QQQ fronts; see flag key in event loop
+	outTree->Branch("flagQb",&flagQb,"flagQb/I"); // for QQQ backs; see flag key in event loop
 	outTree->Branch("flagB",&flagB,"flagB/I"); // see flag key in event loop
 	
 	outTree->Branch("dEmult",&dEmult,"dEmult/i"); // detector mult above threshold
@@ -234,7 +235,7 @@ void Reconstruct(int runNumber)
 
 	    //initialize stuff
 	    dEmult = 0; dEtime = -1; dE = -1.; dEz = -1.; dEphi = -1.; dErho = -1.; 
-	    dEdet = -1; dEstrip = -1; flagUpDn = 0; flagQ = 0; flagB = 0;
+	    dEdet = -1; dEstrip = -1; flagUpDn = 0; flagQf = 0; flagQb = 0; flagB = 0;
 	    EmultF = 0; EmultB = 0; EtFront = -1; EtBack = -1; Ef = -1.; Eb = -1.; 
 	    EroughF = -1; EroughB = -1; Ez = -1.; Erho = -1.; Ephi = -1.; 
 	    Edet = -1; EstripF = -1; EstripB = -1;
@@ -244,7 +245,7 @@ void Reconstruct(int runNumber)
 	     * option 0: default flag = 0 (below threshold)
 	     * option 1: detector # not set -> set everything for first time -> flag = 1
 	     * option 2: detector # matches previous -> check for adjacent strip -> sum them -> flag = 2
-	     * option 3a: detector # matches previous -> not adjacent strip -> ??? -> flag = 3 [only BD4: strip 26&10, 29&13 (wire bond damage)]
+	     * option 3a: detector # matches previous -> not adjacent strip -> ??? -> flag = 3 [BD4: strip 26&10, 29&13 (wire bond damage)]
 	     * option 3b: detector # doesn't match prev -> ??? -> flag = 3
 	     */
 
@@ -270,24 +271,79 @@ void Reconstruct(int runNumber)
 	    		entryNum = jentry; //store row of pruned tree
 
 	    		if(ibool)std::cout<<" QQQ "<<Edet<<std::endl;
-	    		//grab all QQQ data
-	    		EmultF = dQ[Edet].Fmult; EmultB = dQ[Edet].Bmult; 
-	    		EtFront = dQ[Edet].Ftime[0]; EtBack = dQ[Edet].Btime[0]; 
-	    		Ef = dQ[Edet].Fenergy[0]; Eb = dQ[Edet].Benergy[0]; 
-	    		EroughF = dQ[Edet].FroughCal[0]; EroughB = dQ[Edet].BroughCal[0]; 
-	    		EstripF = dQ[Edet].Fnum[0]; EstripB = dQ[Edet].Bnum[0];
-	    		Ez = m_Qz; Erho = dQ[Edet].rho[0]; Ephi = dQ[Edet].phi[0];
+
+	    		//grab all QQQ front data
+	    		EmultF = dQ[Edet].Fmult; EstripF = dQ[Edet].Fnum[0];
+	    		EtFront = dQ[Edet].Ftime[0]; 
+	    		Ef = dQ[Edet].Fenergy[0]; EroughF = dQ[Edet].FroughCal[0]; 
+	    		Ez = m_Qz; Erho = dQ[Edet].rho[0];
+
+	    		//handle QQQ back hits
+	    		int count = 0;
+	    		for(int i=0; i<dQ[Edet].Bmult; i++)
+	    		{
+	    			if(dQ[Edet].Benergy[i]>eQmin) //energy threshold
+	    			{
+	    				if(count==0) //if first match
+	    				{
+	    					flagQb = 1;
+	    					iter = i; //iterator =/= strip number
+	    					count ++;
+	    				}
+	    				else if(std::abs(dQ[Edet].Bnum[iter]-dQ[Edet].Bnum[i])==1) //if second match & adjacent strip
+	    				{
+	    					if(ibool)std::cout << "Entry = " << jentry << std::endl;
+	    					if(ibool)std::cout<<" OK: previous strip = "<<dQ[Edet].Bnum[iter]<<", current strip = "<<dQ[Edet].Bnum[i]<<std::endl;
+	    					flagQb = 2;
+	    					iter2 = i;
+	    					count++;
+	    				}
+	    				else //all other cases
+	    				{
+	    					if(ibool)std::cout << "Entry = " << jentry << std::endl;
+	    					if(ibool)std::cout<<" WEIRD: previous strip = "<<dQ[Edet].Bnum[iter]<<", current strip = "<<dQ[Edet].Bnum[i]<<std::endl;
+	    					flagQb = 3;
+	    					count++;
+	    				}
+	    			}
+	    		}
+	    		//grab all QQQ back data, according to flag
+	    		if(flagQb==0) //flagQb = 0: no wedge
+	    		{
+	    			//set phi as center of detector
+	    			float phi = 225. - Edet*90.; //calculate phi in degrees
+	    			Ephi = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
+	    		}
+	    		else if(flagQb==1) //flagQb = 1: one wedge
+	    		{
+	    			EmultB = count; EstripB = dQ[Edet].Bnum[iter];
+	    			EtBack = dQ[Edet].Btime[iter]; 
+	    			Eb = dQ[Edet].Benergy[iter]; EroughB = dQ[Edet].BroughCal[iter]; 
+	    			Ephi = dQ[Edet].phi[iter];
+	    		}
+	    		else if(flagQb==2) //flagQb = 2: two adjacent wedges (summed energy & avg phi,time)
+	    		{
+	    			EmultB = count; EstripB = dQ[Edet].Bnum[iter];
+	    			EtBack = 0.5*(dQ[Edet].Btime[iter]+dQ[Edet].Btime[iter2]); 
+	    			Eb = dQ[Edet].Benergy[iter]+dQ[Edet].Benergy[iter2]; 
+	    			EroughB = dQ[Edet].BroughCal[iter]+dQ[Edet].BroughCal[iter2]; 
+	    			Ephi = 0.5*(dQ[Edet].phi[iter]+dQ[Edet].phi[iter2]);
+	    			if(ibool)std::cout<<" wedge = "<<dQ[Edet].Bnum[iter]<<", phi = "<<dQ[Edet].phi[iter]<<std::endl;
+	    			if(ibool)std::cout<<" wedge = "<<dQ[Edet].Bnum[iter2]<<", phi = "<<dQ[Edet].phi[iter2]<<std::endl;
+	    			if(ibool)std::cout<<" total phi = "<<Ephi<<std::endl;
+	    		}
+	    		else //flagQb = 3: non-adjacent wedges (???)
+	    		{
+	    			EmultB = count; EstripB = dQ[Edet].Bnum[iter];
+	    			EtBack = dQ[Edet].Btime[iter]; 
+	    			Eb = dQ[Edet].Benergy[iter]; EroughB = dQ[Edet].BroughCal[iter]; 
+	    			Ephi = dQ[Edet].phi[iter];
+	    		}
 
 	    		//TODO: list of dead wedges
 
-	    		//if no back hit, use detector phi
-	    		if(EmultB==0)
-	    		{
-	    			float phi = 225 - Edet *  90; //calculate phi in degrees
-	    			Ephi = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
-	    		}
 	    		//look for barc (up or down) signal
-	    		int count = 0;
+	    		count = 0;
 	    		for(int i=0; i<=5; i++)
 	    		{
 	    			for(int j=0; j<dBU[i].Fmult; j++) //up loop
@@ -355,7 +411,7 @@ void Reconstruct(int runNumber)
 	    		if(ibool)std::cout<<" Barc "<<dEdet<<", flagUpDn = "<<flagUpDn<<", flagB = "<<flagB<<std::endl;
 
 	    		//TODO: can this be a function?
-	    		//grab all barc data (up or down)
+	    		//grab all barc data (up or down) according to flag
 	    		if(flagB==1) //flagB = 1: one barc strip
 	    		{
 	    			switch(flagUpDn)
@@ -421,17 +477,13 @@ void Reconstruct(int runNumber)
     			else sameDir = (Ephi>=lower)&&(Ephi<=upper); //default search range
     			if(sameDir) IntZ = Ez - Erho*( (Ez-dEz)/(Erho-dErho) );
 
-    			//CHECK: why are some IntZ negative?
-    			if(IntZ<-1.) std::cout<<"QQQz = "<<Ez<<", QQQrho = "<<Erho<<", barcZ = "<<", "<<dEz<<std::endl;
-
     			//if IntZ in active area, calculate IntTheta & IntPath (from interaction point to outer hit)
     			if(IntZ>50.)
     			{
     				IntTheta = std::atan(Erho/(Ez-IntZ))*180./M_PI; // convert to degrees
     				IntPath = (Ez-IntZ)/std::cos(IntTheta*M_PI/180.);
     			}
-    			//later: do i need to calculate path lengths as well for energy loss calculations?
-    			//later: calculate dEtheta (how? maybe a straggling correction from BarcMult?)
+    			//TODO: calculate a straggling correction
 
     			outTree->Fill();
 	    	} //end of QQQ energy threshold loop
