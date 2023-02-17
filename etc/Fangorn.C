@@ -89,11 +89,11 @@ Long64_t jentry;
 for (jentry=0; jentry<nevents; jentry++){
     tree->GetEntry(jentry);
 	
-//************************************************************************************
-//*************** Call the exterminator! You've got bugs! ******************
+//*************************************************************************
+//*************** Call the exterminator! You've got bugs! *****************
 /* ************************ */ bool ibool = 0; /* ************************* */
-//************************************************************************************
-//***********************************************************************************
+//*************************************************************************
+//*************************************************************************
 
     ringHit = false; BUhit = false; BDhit = false;
     QFmult = QBmult = 0;
@@ -116,7 +116,6 @@ for (jentry=0; jentry<nevents; jentry++){
         BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
     }
     
-// Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
 //****************************************************************************
 
 // Gordon's tree contains the following:
@@ -133,7 +132,11 @@ for (jentry=0; jentry<nevents; jentry++){
         if(ibool) std::cout << std::endl << "Entry " << jentry << " QQQ ring " << i << std::endl;
           QFenergy[QFmult] = ring.energy;
           QFtime[QFmult] = ring.timestamp;
-          QFdetnum[QFmult] = i;
+            
+            if(i==2){QFdetnum[QFmult] = 3;} // need to swap QQQ2 & 3
+            else if(i==3){QFdetnum[QFmult] = 2;}
+            else{QFdetnum[QFmult] = i;}
+            
           QFnum[QFmult] = lookUp[ring.globalChannel];
    
             Qz[QFmult] = QQQzpos;
@@ -179,7 +182,6 @@ for (jentry=0; jentry<nevents; jentry++){
              }
              BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
              if(front.energy>0) BDmult++; BDhit = true;
-             
         }
     }
     
@@ -201,7 +203,7 @@ for (jentry=0; jentry<nevents; jentry++){
                }
  
     }// end loop over 6
-    //if(ibool) std::cout << "postloop BUmult = " << BUmult << std::endl;
+    if(ibool) std::cout << "postloop BUmult = " << BUmult << std::endl;
 
     // ***************************************************
     
@@ -224,8 +226,8 @@ outputfile->cd();
 outT->Fill();
     } // end of ring=true condition
 
-//if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
-//std::cout << "\r" << std::flush;
+if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
+std::cout << "\r" << std::flush;
     } // end of event loop
 
 outputfile->cd();
@@ -239,49 +241,6 @@ delete inputfile;
 delete outputfile;
 }
 
-
-//for (i=0;i<12;i++){
-//    dSX[i].Fmult = 0; dSX[i].Bmult = 0; dSX[i].detnum = -1;
-//    for(j=0;j<4;j++){
-//    dSX[i].Fnum[j] = -1; dSX[i].Bnum[j] = -1; // fronts will need to change (frontup/front down)
-//        dSX[i].Fenergy[j] = -1.; dSX[i].Benergy[j] = -1.;
-//    dSX[i].z[j] = -1.; dSX[i].phi[j] = -1000.; dSX[i].rho[j] = -1.;
-//        dSX[i].Ftime[j] = -1; dSX[i].Btime[j] = -1;
-//}}
-
-// outermult = 0;
-//for (i=0;i<12;i++){
-//    // looping over detector number. Gordon separates his into detectors and strip is looked up if there's a hit
-//    for(auto& back : event->barrel[i].backs){
-//                if(ibool) std::cout << " detector " << i << std::endl;
-//        dSX[i].Benergy[dSX[i].Bmult] = back.energy;
-//        dSX[i].Btime[dSX[i].Bmult] = back.timestamp;
-//                if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
-//                if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
-//        auto iter = m_chanMap.FindChannel(back.globalChannel);
-//        if(iter == m_chanMap.End()){
-//            std::cout << "channel map error" << std::endl;
-//        }else{
-//            dSX[i].Bnum[dSX[i].Bmult] = iter->second.local_channel;
-//                if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
-//            dSX[i].Bmult++;
-//                if(ibool)std::cout << dSX[i].Bmult << " at end of loop" << std::endl;
-//        }}
-//
-//    for(j=0;j<dSX[i].Bmult;j++){
-//      if(i==0){ dSX[0].phi[j] = 247.5;
-//      }else if(i>0 && i<9){ dSX[i].phi[j] = 247.5 - (i*22.5);
-//      }else if(i==9){ dSX[9].phi[j] = 337.5;
-//      }else if(i==10){ dSX[10].phi[j] = 315.0;
-//      }else if(i==11){ dSX[11].phi[j] = 292.5;
-//      }
-//
-//      outer_E[outermult] = dSX[i].Benergy[j];
-//      outer_phi[outermult] = dSX[i].phi[j];
-//      outermult++;
-//    }
-// } //  end loop over 12
-// // need fronts
 
 
 // **************************************************************************************************
@@ -309,6 +268,3 @@ delete outputfile;
 //        dEtheta = BDnumMax;
 //}
 
-/*
-   int lookUp[640] = {0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
- */
