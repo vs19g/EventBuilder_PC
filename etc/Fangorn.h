@@ -33,8 +33,6 @@ long BUtime[32], BDtime[32];
 float BUz[32], BUrho[32], BUphi[32];
 float BDz[32], BDrho[32], BDphi[32];
 
-int QFval, QBval, BUval, BDval;
-
 
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;
 //float QFenergyMax; int QFnumMax; int QFdetMax;

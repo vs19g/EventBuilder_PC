@@ -115,8 +115,8 @@ for (jentry=0; jentry<nevents; jentry++){
         BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
         BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
     }
-    QFval = 100; QBval = 100; BUval = 100; BDval = 100;
-
+    
+// Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
 //****************************************************************************
 
 // Gordon's tree contains the following:
@@ -130,13 +130,12 @@ for (jentry=0; jentry<nevents; jentry++){
 
     for(i=0;i<4;i++){
         for(auto& ring : event->fqqq[i].rings){
-          if(ibool) std::cout << std::endl << "Entry " << jentry << " QQQ ring " << i << std::endl;
+        if(ibool) std::cout << std::endl << "Entry " << jentry << " QQQ ring " << i << std::endl;
           QFenergy[QFmult] = ring.energy;
           QFtime[QFmult] = ring.timestamp;
           QFdetnum[QFmult] = i;
-          QFval = ring.globalChannel;
-          QFnum[QFmult] = lookUp[QFval];
-            
+          QFnum[QFmult] = lookUp[ring.globalChannel];
+   
             Qz[QFmult] = QQQzpos;
                 Qrho[QFmult]= (QFnum[QFmult]+0.5)*(0.099-0.0501)/16; // rho in mm
                 if(ibool){ std::cout << "E "<<QFenergy[QFmult]<<" t "<<QFtime[QFmult] << std::endl;
@@ -148,7 +147,7 @@ for (jentry=0; jentry<nevents; jentry++){
 
     for(i=0;i<4;i++){
 	for(auto& wedge : event->fqqq[i].wedges){
-                if(ibool) std::cout << "QQQ wedge " << i << std::endl;
+        if(ibool) std::cout << "QQQ wedge " << i << std::endl;
         QBenergy[QBmult] = wedge.energy;
         QBtime[QBmult] = wedge.timestamp;
         QBdetnum[QBmult] = i;
@@ -157,9 +156,8 @@ for (jentry=0; jentry<nevents; jentry++){
         else if (i==0) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 182.8125;
         else if (i==3) Qphi[QBmult] = ((15 - QBnum[QBmult]) * 5.625) + 272.8125;
         
-        QBval = lookUp[wedge.globalChannel];
-        QBnum[QBmult] = QBval;
-            
+        QBnum[QBmult] = lookUp[wedge.globalChannel];
+     
     if(ibool){ std::cout << "E "<<QBenergy[QBmult]<<" t "<<QBtime[QBmult] << std::endl;
                std::cout << "det "<<QBdetnum[QBmult]<<" strip "<<QBnum[QBmult]<<" phi "<<Qphi[QBmult]<<std::endl;}
             if(wedge.energy>50) QBmult++;
@@ -173,15 +171,15 @@ for (jentry=0; jentry<nevents; jentry++){
             BDenergy[BDmult] = front.energy;
             BDtime[BDmult] = front.timestamp;
             BDdetnum[BDmult] = i;
-            BDval = lookUp[front.globalChannel];
-            BDnum[BDmult] = BDval;
-             
-            if(i==0){ BDphi[BDmult] = 270;
+            BDnum[BDmult] = lookUp[front.globalChannel];
+            
+             if(i==0){ BDphi[BDmult] = 270;
              }else if(i==5){ BDphi[BDmult] = 330;
              }else{ BDphi[BDmult] = 270 - (i*60);
              }
              BDz[BDmult] = BDzoffset + (BDnum[BDmult]*2) + 1; // mm.
              if(front.energy>0) BDmult++; BDhit = true;
+             
         }
     }
     
@@ -192,8 +190,7 @@ for (jentry=0; jentry<nevents; jentry++){
             BUenergy[BUmult] = front.energy;
             BUtime[BUmult] = front.timestamp;
             BUdetnum[BUmult] = i;
-            BUval = lookUp[front.globalChannel];
-            BUnum[BUmult] = BUval;
+            BUnum[BUmult] = lookUp[front.globalChannel];
             
             if(i==0){ BUphi[BUmult] = 270;
                 }else if(i==5){ BUphi[BUmult] = 330;
@@ -227,8 +224,8 @@ outputfile->cd();
 outT->Fill();
     } // end of ring=true condition
 
-if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
-std::cout << "\r" << std::flush;
+//if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
+//std::cout << "\r" << std::flush;
     } // end of event loop
 
 outputfile->cd();
