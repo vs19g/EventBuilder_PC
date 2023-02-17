@@ -16,7 +16,7 @@ struct dataBarcUp{ int Fmult; double Fenergy[32]; int Fnum[32]; float z[32]; flo
 struct dataBarcDown{ int Fmult; double Fenergy[32]; int Fnum[32]; float z[32]; float rho[32]; float phi[32]; double Ftime[32];};
 
 // ***** constants *****
-float m_BDZoffset = 222.76; // mm, edge of strip 0 (most downstream strip)
+float m_BDZoffset = 222.76+40.; // mm, edge of strip 0 (most downstream strip) //40mm offset until measurement comes
 float m_BUZoffset = 122.65; // mm, edge of strip 0 (most upstream strip)
 
 float m_roughCal = 3.6; // keV/channel for QQQ only; rough calibration, same gain for all channels

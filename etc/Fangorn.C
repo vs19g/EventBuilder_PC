@@ -6,8 +6,6 @@
 #include "TH1.h"
 #include "TH2.h"
 
-#include "../src/evb/ChannelMap.h"
-#include "../src/evb/ChannelMap.cpp"
 #include "../src/evbdict/DataStructs.h"
 
 #include <iostream>
@@ -43,7 +41,7 @@ if(tree == nullptr){
 }
 
 // ***** output file *****
-TFile* outputfile = TFile::Open(output_filename.c_str(), "UPDATE");
+TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 TTree *outT = new TTree("BarcQQQTreeData","EventBuilder data with cylindrical coords");
 std::cout<<"Opening "<<output_filename<<std::endl;
 
@@ -370,8 +368,12 @@ for(int i=0; i<4;i++){
 
 QQQmult = 0; BarcMult = 0;
 
-EventBuilder::ChannelMap m_chanMap("ANASEN_TRIUMFAug_run21+_ChannelMap.txt");
-// Otherwise, if this is slow, I could parse the global and local channels from the channel map and make a giant array
+//Gemma replaced ChannelMap with lookUp array
+// make channel map into a list of strip numbers:
+// awk '{printf $5 ","}' ANASEN_TRIUMFAug_run21+_ChannelMap.txt
+// printf = don't put new line; $5 = 5th column, then put comma.
+// note there were channels missing; they now read strip 100, because chan number = array element.
+int lookUp[640]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 /**************************************************************************************/
 
 // Gordon's tree contains the following:
@@ -401,11 +403,7 @@ for (int i=0;i<12;i++){
 			if(ibool)std::cout << "mult = " << dSX[i].Bmult << std::endl;
 			if(ibool)std::cout << "dSX["<<i<<"].Benergy["<<dSX[i].Bmult<<"] = " << dSX[i].Benergy[dSX[i].Bmult] << std::endl;
 			//assign Bnum to iBack (local strip number)
-			auto iter = m_chanMap.FindChannel(back.globalChannel);
-			if(iter == m_chanMap.End()){
-			std::cout << "channel map error" << std::endl;
-			}else{
-			iBack = iter->second.local_channel; //iBack is local strip # (unvetted, some may be "reversed") 
+			iBack = lookUp[back.globalChannel]; //iBack is local strip # (unvetted, some may be "reversed") 
 			dSX[i].Bnum[dSX[i].Bmult] = iBack;
 			if(ibool)std::cout << "dSX["<<i<<"].Bnum["<<dSX[i].Bmult<<"] = " << dSX[i].Bnum[dSX[i].Bmult] << std::endl;
 			//calculate physical coordinate(s) 
@@ -420,7 +418,7 @@ for (int i=0;i<12;i++){
 			//increment multiplicity
 			dSX[i].Bmult++; 
 			if(ibool)std::cout << "SX" << i << " mult = " << dSX[i].Bmult << " at end of loop" << std::endl;
-	}}}
+	}}
 	// ignore the fronts for now
 }*/
 
@@ -456,13 +454,10 @@ for (int i=0;i<4;i++){
 			dQ[iQQQ].Ftime[dQ[iQQQ].Fmult] = ring.timestamp;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Fenergy["<<dQ[iQQQ].Fmult<<"] = " << dQ[iQQQ].Fenergy[dQ[iQQQ].Fmult] << std::endl;
 			//assign Fnum to iRing (local strip number)
-			auto iter = m_chanMap.FindChannel(ring.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-			}else if(iQQQ==0 || iQQQ==2){//copying corrections for QQQ0&2 from wedges; forcing 0 to 15 to count same direction (outward?)
-				iRing = 15.-iter->second.local_channel; //iRing is local ring #
+			if(iQQQ==0 || iQQQ==2){//copying corrections for QQQ0&2 from wedges; forcing 0 to 15 to count same direction (outward?)
+				iRing = 15-lookUp[ring.globalChannel]; //iRing is local ring #
 			}else{
-				iRing = iter->second.local_channel; //iRing is local ring # (assuming QQQ1&3 count outward)
+				iRing = lookUp[ring.globalChannel]; //iRing is local ring # (assuming QQQ1&3 count outward)
 			}
 			dQ[iQQQ].Fnum[dQ[iQQQ].Fmult] = iRing;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Fnum["<<dQ[iQQQ].Fmult<<"] = " << dQ[iQQQ].Fnum[dQ[iQQQ].Fmult] << std::endl;
@@ -487,14 +482,10 @@ for (int i=0;i<4;i++){
 			dQ[iQQQ].Btime[dQ[iQQQ].Bmult] = wedge.timestamp;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Benergy["<<dQ[iQQQ].Bmult<<"] = " << dQ[iQQQ].Benergy[dQ[iQQQ].Bmult] << std::endl;
 			//assign Fnum to iWedge (local strip number)
-			auto iter = m_chanMap.FindChannel(wedge.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-				return;
-			}else if(iQQQ==0 || iQQQ==2){//QQQ0&2 corrected so all wedges count CCW 0 to 15
-				iWedge = 15.-iter->second.local_channel; //iWedge is local wedge #
+			if(iQQQ==0 || iQQQ==2){//QQQ0&2 corrected so all wedges count CCW 0 to 15
+				iWedge = 15-lookUp[wedge.globalChannel]; //iWedge is local wedge #
 			}else{
-				iWedge = iter->second.local_channel; //iWedge is local wedge #
+				iWedge = lookUp[wedge.globalChannel]; //iWedge is local wedge #
 			}
 			dQ[iQQQ].Bnum[dQ[iQQQ].Bmult] = iWedge;
 			if(ibool) std::cout << "dQ["<<iQQQ<<"].Bnum["<<dQ[iQQQ].Bmult<<"] = " << dQ[iQQQ].Bnum[dQ[iQQQ].Bmult] << std::endl;
@@ -524,27 +515,23 @@ for(int i=0;i<6;i++){
 			dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
 			if(ibool) std::cout << "dBD["<<i<<"].Fenergy["<<dBD[i].Fmult<<"] = " << dBD[i].Fenergy[dBD[i].Fmult] << std::endl;
 			//assign Fnum to iFront (local strip number)
-			auto iter = m_chanMap.FindChannel(front.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-			}else{
-				iFront = iter->second.local_channel; //counts 0 to 31 from downstream to upstream (decreasing z)
-				dBD[i].Fnum[dBD[i].Fmult] = iFront;
-				if(ibool)std::cout << "dBD["<<i<<"].Fnum["<<dBD[i].Fmult<<"] = " << dBD[i].Fnum[dBD[i].Fmult] << std::endl;
-				//calculate physical coordinate(s)
-				float phi = 270. - (60.*i);
-				float z = m_BDZoffset - 2*(iFront+0.5); // mm, m_BDZoffset is distance from z=0 to downstream edge of strip 0
-				//store physical coordinate(s)
-				dBD[i].phi[dBD[i].Fmult] = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
-				dBD[i].z[dBD[i].Fmult] = z;
-				//print coordinates
-				if(ibool)std::cout << "dBD["<<i<<"].phi["<<dBD[i].Fmult<<"] = " << dBD[i].phi[dBD[i].Fmult] << std::endl;
-				if(ibool)std::cout << "dBD["<<i<<"].z["<<dBD[i].Fmult<<"] = " << dBD[i].z[dBD[i].Fmult] << std::endl;
-				//increment multiplicity
-				dBD[i].Fmult++;
-				BarcMult++;
-				if(ibool) std::cout << "barcDn mult after loop = " << dBD[i].Fmult << std::endl;
-			}}}
+			iFront = lookUp[front.globalChannel]; //counts 0 to 31 from downstream to upstream (decreasing z)
+			dBD[i].Fnum[dBD[i].Fmult] = iFront;
+			if(ibool)std::cout << "dBD["<<i<<"].Fnum["<<dBD[i].Fmult<<"] = " << dBD[i].Fnum[dBD[i].Fmult] << std::endl;
+			//calculate physical coordinate(s)
+			float phi = 270. - (60.*i);
+			float z = m_BDZoffset - 2*(iFront+0.5); // mm, m_BDZoffset is distance from z=0 to downstream edge of strip 0
+			//store physical coordinate(s)
+			dBD[i].phi[dBD[i].Fmult] = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
+			dBD[i].z[dBD[i].Fmult] = z;
+			//print coordinates
+			if(ibool)std::cout << "dBD["<<i<<"].phi["<<dBD[i].Fmult<<"] = " << dBD[i].phi[dBD[i].Fmult] << std::endl;
+			if(ibool)std::cout << "dBD["<<i<<"].z["<<dBD[i].Fmult<<"] = " << dBD[i].z[dBD[i].Fmult] << std::endl;
+			//increment multiplicity
+			dBD[i].Fmult++;
+			BarcMult++;
+			if(ibool) std::cout << "barcDn mult after loop = " << dBD[i].Fmult << std::endl;
+			}}
 
 	for(auto& front : event->barcUp[i].fronts){
 		//if(ibool) std::cout << "barcUp mult = " << dBU[i].Fmult << std::endl;
@@ -553,28 +540,24 @@ for(int i=0;i<6;i++){
 			dBU[i].Fenergy[dBU[i].Fmult] = front.energy;
 			dBU[i].Ftime[dBU[i].Fmult] = front.timestamp;
 			if(ibool) std::cout << "dBU["<<i<<"].Fenergy["<<dBU[i].Fmult<<"] = " << dBU[i].Fenergy[dBU[i].Fmult] << std::endl;
-			auto iter = m_chanMap.FindChannel(front.globalChannel);
-			if(iter == m_chanMap.End()){ 
-				std::cout << "channel map error" << std::endl;
-			}else{
-				//assign Fnum to iFront (local strip number)
-				iFront = iter->second.local_channel; //counts 0 to 31 from upstream to downstream (increasing z)
-				dBU[i].Fnum[dBU[i].Fmult] = iFront;
-				if(ibool)std::cout << "dBU["<<i<<"].Fnum["<<dBU[i].Fmult<<"] = " << dBU[i].Fnum[dBU[i].Fmult] << std::endl;
-				//calculate physical coordinate(s)
-				float phi = 270. - (60.*i);
-				float z = m_BUZoffset + 2*(iFront+0.5); // mm, m_BUZoffset is distance from z=0 to upstream edge of strip 0
-				//store physical coordinate(s)
-				dBU[i].phi[dBU[i].Fmult] = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
-				dBU[i].z[dBU[i].Fmult] = z;
-				//print coordinates
-				if(ibool)std::cout << "dBU["<<i<<"].phi["<<dBU[i].Fmult<<"] = " << dBU[i].phi[dBU[i].Fmult] << std::endl;
-				if(ibool)std::cout << "dBU["<<i<<"].z["<<dBU[i].Fmult<<"] = " << dBU[i].z[dBU[i].Fmult] << std::endl;
-				//increment multiplicity
-				dBU[i].Fmult++;
-				BarcMult++;
-				if(ibool) std::cout << "barcUp mult after loop = " << dBU[i].Fmult << std::endl;
-			}}}
+			//assign Fnum to iFront (local strip number)
+			iFront = lookUp[front.globalChannel]; //counts 0 to 31 from upstream to downstream (increasing z)
+			dBU[i].Fnum[dBU[i].Fmult] = iFront;
+			if(ibool)std::cout << "dBU["<<i<<"].Fnum["<<dBU[i].Fmult<<"] = " << dBU[i].Fnum[dBU[i].Fmult] << std::endl;
+			//calculate physical coordinate(s)
+			float phi = 270. - (60.*i);
+			float z = m_BUZoffset + 2*(iFront+0.5); // mm, m_BUZoffset is distance from z=0 to upstream edge of strip 0
+			//store physical coordinate(s)
+			dBU[i].phi[dBU[i].Fmult] = (phi < 0.) ? (phi + 360.) : (phi); //if phi < 0, then add 360
+			dBU[i].z[dBU[i].Fmult] = z;
+			//print coordinates
+			if(ibool)std::cout << "dBU["<<i<<"].phi["<<dBU[i].Fmult<<"] = " << dBU[i].phi[dBU[i].Fmult] << std::endl;
+			if(ibool)std::cout << "dBU["<<i<<"].z["<<dBU[i].Fmult<<"] = " << dBU[i].z[dBU[i].Fmult] << std::endl;
+			//increment multiplicity
+			dBU[i].Fmult++;
+			BarcMult++;
+			if(ibool) std::cout << "barcUp mult after loop = " << dBU[i].Fmult << std::endl;
+			}}
 } //end of barc loop
 if(ibool) std::cout << "total Barc mult = " << BarcMult << std::endl;
 
