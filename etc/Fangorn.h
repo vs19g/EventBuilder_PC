@@ -12,6 +12,7 @@
     float BDZoffset = 222.76+40.; // mm, edge of strip 0 (most downstream strip) //40mm offset until measurement comes
     float BUZoffset = 122.65; // mm, edge of strip 0 (most upstream strip)
     float QQQzpos = 296.; // mm
+    float SXZoffset = 161.;//mm
     int innermult, outermult;
     float inner_E[30], outer_E[30]; // no idea the size - this should be big enough though
     float inner_phi[30], outer_phi[30]; 
@@ -25,6 +26,7 @@ long QFtime[40], QBtime[40];
 
 bool ringHit, BUhit, BDhit;
 
+
 int BUmult, BDmult;
 float BUenergy[60], BDenergy[60];
 int BUdetnum[60], BDdetnum[60];
@@ -33,6 +35,17 @@ long BUtime[60], BDtime[32];
 float BUz[60], BUrho[60], BUphi[60];
 float BDz[60], BDrho[60], BDphi[60];
 
+int SXFmult, SXBmult;
+float SXFenergy[50], SXBenergy[50];
+int SXFdetnum[50], SXBdetnum[50];
+int SXFnum[50], SXBnum[50];
+long SXFtime[50], SXBtime[50];
+float SXBz[50], SXrho[50], SXphi[50];
+float SXFz[50];
+bool up, down;
+float Efrntup, Efrntdwn, Eback;
+int upstrp, dwnstrp,upnum, downnum;
+float Estrip, diff, Eratio, coeff;
 
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;
 //float QFenergyMax; int QFnumMax; int QFdetMax;

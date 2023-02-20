@@ -58,7 +58,6 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("Qz",Qz,"Qz[QFmult]/f");
     outT->Branch("Qrho",Qrho,"Qrho[QFmult]/f");
     outT->Branch("Qphi",Qphi,"Qphi[QBmult]/f");
-    outT->Branch("Qtheta",Qtheta,"Qtheta[QFmult]/f");
     
     outT->Branch("BUmult",&BUmult,"BUmult/i");
     outT->Branch("BDmult",&BDmult,"BDmult/i");
@@ -76,17 +75,32 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("BDz",BDz,"BDz[BDmult]/f");
     outT->Branch("BDrho",BDrho,"BDrho[BDmult]/f");
     outT->Branch("BDphi",BDphi,"BDphi[BDmult]/f");
-    outT->Branch("BDtheta",BDtheta,"BDtheta[BDmult]/f");
-    outT->Branch("BUtheta",BUtheta,"BUtheta[BUmult]/f");
+    
+    outT->Branch("SXFmult",&SXFmult,"SXFmult/i");
+    outT->Branch("SXBmult",&SXBmult,"SXBmult/i");
+    outT->Branch("SXFenergy",SXFenergy,"SXFenergy[SXFmult]/f");
+    outT->Branch("SXBenergy",SXBenergy,"SXBenergy[SXBmult]/f");
+    outT->Branch("SXFdetnum",SXFdetnum,"SXFdetnum[SXFmult]/i");
+    outT->Branch("SXBdetnum",SXBdetnum,"SXBdetnum[SXBmult]/i");
+    outT->Branch("SXFnum",SXFnum,"SXFnum[SXFmult]/i");
+    outT->Branch("SXBnum",SXBnum,"SXBnum[SXBmult]/i");
+    outT->Branch("SXFtime",SXFtime,"SXFtime[SXFmult]/l");
+    outT->Branch("SXBtime",SXBtime,"SXBtime[SXBmult]/l");
+    outT->Branch("SXBz",SXBz,"SXBz[SXBmult]/f");
+    outT->Branch("SXFz",SXFz,"SXFz[SXFmult]/f");
+    outT->Branch("SXrho",SXrho,"SXrho[SXBmult]/f");
+    outT->Branch("SXphi",SXphi,"SXphi[SXFmult]/f");
     
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
     
+    float rhosx[12] = {89.0354, 89.0354, 89.0247, 89.0354, 89.0354, 89.0247, 89.0354, 89.0354, 89.0247, 89.0354, 88.9871, 89.0601}; // mm; from Gordon
     
     // make channel map into a list of strip numbers:
     // awk '{printf $5 ","}' ANASEN_TRIUMFAug_run21+_ChannelMap.txt
     // printf = don't put new line; $5 = 5th column, then put comma.
     // note there were channels missing; they now read strip 100, because chan number = array element.
+
     int lookUp[640]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
 
 for (jentry=0; jentry<nevents; jentry++){
@@ -118,6 +132,18 @@ for (jentry=0; jentry<nevents; jentry++){
         BUz[i] = BUrho[i] = -1; BUphi[i] = -1000.;
         BDz[i] = BDrho[i] = -1; BDphi[i] = -1000.;
     }
+    
+    SXFmult = 0; SXBmult = 0;
+    for(i=0;i<50;i++){
+        SXFenergy[i] = -1.; SXBenergy[i] = -1.;
+        SXFdetnum[i] = 100; SXBdetnum[i] = 100;
+        SXFnum[i] = -1; SXBnum[i] = -1;
+        SXFtime[i] = -1.; SXBtime[i] = -1.;
+        SXBz[i] = -1.; SXrho[i] = -1.; SXphi[i] = -1000.;
+        SXFz[i] = -1.;
+    }
+    Estrip = -5.; diff = -5.; Eratio=-5.; coeff=-5.;
+    Eback = -5.;
     
 //****************************************************************************
 
@@ -157,7 +183,7 @@ for (jentry=0; jentry<nevents; jentry++){
             
             if(ibool){ std::cout << "E " << QFenergy[QFmult] << " t " << QFtime[QFmult] << std::endl;
             std::cout << "det " << QFdetnum[QFmult] << " strip " << QFnum[QFmult] << " z " <<Qz[QFmult];
-            std::cout <<" rho " << Qrho[QFmult] << " theta " << Qtheta[QFmult] << std::endl;}
+            std::cout <<" rho " << Qrho[QFmult] << std::endl;}
              QFmult++; ringHit = true;
                                                
             }
@@ -191,6 +217,8 @@ for (jentry=0; jentry<nevents; jentry++){
             }
         }
     } // end loop over 4.
+    
+// ***************************************************
     
 // Fill barcelonas
     if(ringHit){
@@ -230,20 +258,123 @@ for (jentry=0; jentry<nevents; jentry++){
     if(ibool) std::cout << "postloop BUmult = " << BUmult << std::endl;
 
     // ***************************************************
+        
+    // Fill SX3s
+    // Energy comes from the backs
+    // the only thing the fronts are used for is the position
+    // take the biggest signal out of frontUp and frontDown and ratio it
+    // to the back energy.
+    // OR do (up-down)/(up+down)
     
-    
-    
-    
-// Coordinates of world: +x is beam left, +y is towards the ceiling, +z is the beam direction
-// For cylindrical coordinates: x = rho x cos(phi), y = rho x sin(phi), z = z.
-// where rho = sqrt (x*x + y*y)
-// phi = arctan(y/x)
-
-// phi = arcsin(y/rho), if x>=0;
-// phi = -1*arcsin(y/rho) + pi, if x<0 && y>=0;
-// phi = -1*arcsin(y/rho)
-
-
+    // the back strips are constant in z, but the more accurate z position is from the fronts.
+        
+    // up 1 down 0
+    // up 3 down 2
+    // up 4 down 5
+    // up 6 down 7
+   if(ibool) std::cout << jentry << std::endl;
+        Eback = -5;
+for(i=0;i<12;i++){
+    for(auto& back : event->barrel[i].backs){
+        Eback = back.energy;
+        if(Eback>0){
+            SXBenergy[SXBmult] = back.energy;
+            SXBtime[SXBmult] = back.timestamp;
+            SXBdetnum[SXBmult] = i;
+            SXBnum[SXBmult] = lookUp[back.globalChannel];
+            SXrho[SXBmult] = rhosx[SXBdetnum[SXBmult]];
+            SXBz[SXBmult] = SXZoffset + (SXBnum[SXBmult]*75/4) + 75/8; // mm, mid strip for z
+            if(ibool) std::cout << jentry << " BACK: det " << i << " strip " << SXBnum[SXBmult] << " energy " << back.energy << " t = " << back.timestamp << " mult " << SXBmult << std::endl;
+            SXBmult++;
+        }} // end of backs
+    if(Eback>0){
+        for(auto& frontup : event->barrel[i].frontsUp){
+        for(auto & frontdown : event->barrel[i].frontsDown){
+            SXFdetnum[SXFmult] = i;
+                 if(ibool) std::cout << "front det " << i << std::endl;
+        if(i==0){SXphi[SXFmult] = 247.5;
+            }else if(i>0 && i<9){ SXphi[SXFmult] = 247.5 - (i*22.5);
+            }else if(i==9){ SXphi[SXFmult] = 337.5;
+            }else if(i==10){ SXphi[SXFmult] = 315.0;
+            }else if(i==11){ SXphi[SXFmult] = 292.5;}
+                
+            upnum = -5; downnum = -5; up = false; down = false; upstrp = -5; dwnstrp = -5;
+            Efrntup = frontup.energy;
+            if(Efrntup>0){ up = true;
+                     if(ibool)std::cout << "up " << Efrntup << ", t " << frontup.timestamp;
+                }
+            
+            Efrntdwn = frontdown.energy;
+                if(Efrntdwn>0){ down = true;
+                     if(ibool)std::cout << " down " << Efrntdwn <<", t = " << frontdown.timestamp << std::endl;
+                }
+            upnum = lookUp[frontup.globalChannel];
+            downnum = lookUp[frontdown.globalChannel];
+                    if(ibool) std::cout << "upstrp = " << upnum << ", dwnstrp = " << downnum << std::endl;
+                    
+            switch (upnum) {
+                case 1: upstrp = 0; break;
+                case 3: upstrp = 1; break;
+                case 4: upstrp = 2; break;
+                case 6: upstrp = 3; break;
+            }
+                if(ibool)std::cout << "after up switch, strip " << upstrp;
+            switch (downnum) {
+                case 0: dwnstrp = 0; break;
+                case 2: dwnstrp = 1; break;
+                case 5: dwnstrp = 2; break;
+                case 7: dwnstrp = 3; break;
+            }
+                 if(ibool) std::cout << ", after dwn switch, strip " << dwnstrp << std::endl;
+                // this isn't going to work if you have only one end on two strips firing
+                    
+    if(up && down && upstrp==dwnstrp){
+        if(ibool)std::cout << "we have a strip with both ends firing!" << std::endl;
+        SXFnum[SXFmult] = upstrp;
+        SXFtime[SXFmult] = frontup.timestamp;
+        Estrip = Efrntdwn+Efrntup;
+        SXFenergy[SXFmult] = Estrip;
+        diff = Eback - Estrip;
+        Eratio = Efrntup/Efrntdwn;
+        coeff = (Efrntup+diff-(Efrntdwn*Eratio))/(diff * (1+Eratio));
+            if(Efrntdwn>=Efrntup){
+                SXFz[SXFmult] = (2*(Efrntdwn+(coeff*diff))/Eback) - 1;
+                std::cout << "down>up, z = " << SXFz[SXFmult] << std::endl;
+                SXFmult++;
+            }else{
+                SXFz[SXFmult] = 1 - (2*(Efrntup+(1-coeff)*diff))/Eback;
+                std::cout << "down<up, z = " << SXFz[SXFmult] << std::endl;
+                SXFmult++;
+                }
+    }else if(up && down && upstrp!=dwnstrp){
+                // probably nothing is going to happen here
+                // this is the case that you have two different fronts firing
+                // but only one end of each.
+                // not going to increase the multiplicity here and just have
+                // it get written over
+    }else if(!up && down){
+        SXFz[SXFmult] = (2*Efrntdwn/Eback) - 1;
+        SXFnum[SXFmult] = dwnstrp;
+        SXFtime[SXFmult] = frontdown.timestamp;
+        std::cout << "down only z = " << SXFz[SXFmult] << std::endl;
+        SXFmult++;
+    }else if(up && !down){
+        SXFz[SXFmult] = 1 - (2*Efrntup/Eback);
+        SXFnum[SXFmult] = upstrp;
+        SXFtime[SXFmult] = frontup.timestamp;
+        std::cout << "up only, z = " << SXFz[SXFmult] << std::endl;
+                    SXFmult++;
+    }else{
+        std::cout << jentry << ": no front strip" << std::endl;
+        }
+    }
+            } // end of frontsUp
+        } // end of Eback>0
+      if(ibool)  if(SXFmult>0||SXBmult>0) std::cout << "front mult = " << SXFmult << ", back = " << SXBmult << std::endl;
+} // end of loop over 12
+        for(i=0;i<SXFmult;i++){
+            std::cout<< jentry <<" SXFz = " << SXFz[i] << std::endl;
+        }
           
 // *****************************************************
 outputfile->cd();
@@ -252,6 +383,7 @@ outT->Fill();
 
 if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
+  //  std::cout << std::endl;
     } // end of event loop
 
 outputfile->cd();
@@ -292,5 +424,3 @@ delete outputfile;
 //        dEtheta = BDnumMax;
 //}
 
-//m_SXrho[12] = {89.0354, 89.0354, 89.0247, 89.0354, 89.0354, 89.0247,
-//89.0354, 89.0354, 89.0247, 89.0354, 88.9871, 89.0601}; // mm; from Gordon
