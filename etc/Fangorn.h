@@ -31,7 +31,7 @@ int BUmult, BDmult;
 float BUenergy[60], BDenergy[60];
 int BUdetnum[60], BDdetnum[60];
 int BUnum[60], BDnum[60];
-long BUtime[60], BDtime[32];
+long BUtime[60], BDtime[60];
 float BUz[60], BUrho[60], BUphi[60];
 float BDz[60], BDrho[60], BDphi[60];
 
@@ -43,10 +43,12 @@ long SXFtime[50], SXBtime[50];
 float SXBz[50], SXrho[50], SXphi[50];
 float SXFz[50];
 bool up, down;
-float Efrntup, Efrntdwn, Eback;
+float Efrntup[50], Efrntdwn[50], Eback;
 int upstrp, dwnstrp,upnum, downnum;
 float Estrip, diff, Eratio, coeff;
 
+int SXBch[48];
+float SXBgain[48], SXBoffset[48];
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;
 //float QFenergyMax; int QFnumMax; int QFdetMax;
 //float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;

@@ -42,7 +42,8 @@ tree->SetBranchAddress("event", &event);
 TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 TTree *outT = new TTree("TreeData","TreeData");
 std::cout<<"Opening "<<output_filename<<std::endl;
-
+ 
+    
 /**************************************************************************************/
     //branches here? or call to it?
     outT->Branch("QFmult",&QFmult,"QFmult/i");
@@ -90,6 +91,8 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("SXFz",SXFz,"SXFz[SXFmult]/f");
     outT->Branch("SXrho",SXrho,"SXrho[SXBmult]/f");
     outT->Branch("SXphi",SXphi,"SXphi[SXFmult]/f");
+    outT->Branch("Efrntup",Efrntup,"Efrntup[SXFmult]/f");
+    outT->Branch("Efrntdwn",Efrntdwn,"Efrntdwn[SXFmult]/f");
     
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
@@ -102,6 +105,14 @@ Long64_t jentry;
     // note there were channels missing; they now read strip 100, because chan number = array element.
 
     int lookUp[640]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,31,30,29,28,27,26,25,24,23,22,21,20,19,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31};
+    
+    // ***** read in calibration files *****
+       ifstream SXB;
+       SXB.open("SX3_backs.txt");
+       for(i=0;i<48;i++){
+           SXB >> SXBch[i] >> SXBoffset[i] >> SXBgain[i];
+       }
+       SXB.close();
 
 for (jentry=0; jentry<nevents; jentry++){
     tree->GetEntry(jentry);
@@ -139,8 +150,8 @@ for (jentry=0; jentry<nevents; jentry++){
         SXFdetnum[i] = 100; SXBdetnum[i] = 100;
         SXFnum[i] = -1; SXBnum[i] = -1;
         SXFtime[i] = -1.; SXBtime[i] = -1.;
-        SXBz[i] = -1.; SXrho[i] = -1.; SXphi[i] = -1000.;
-        SXFz[i] = -1.;
+        SXBz[i] = -1000.; SXrho[i] = -1.; SXphi[i] = -1000.;
+        SXFz[i] = -1000.; Efrntup[i] = -1; Efrntdwn[i] = -1;
     }
     Estrip = -5.; diff = -5.; Eratio=-5.; coeff=-5.;
     Eback = -5.;
@@ -221,7 +232,7 @@ for (jentry=0; jentry<nevents; jentry++){
 // ***************************************************
     
 // Fill barcelonas
-    if(ringHit){
+    //if(ringHit){ // COMMENT OUT WHEN CALIBRATING!!
     for(i=0;i<6;i++){
      for(auto& front : event->barcDown[i].fronts){
         if(front.energy>0){
@@ -278,10 +289,10 @@ for(i=0;i<12;i++){
     for(auto& back : event->barrel[i].backs){
         Eback = back.energy;
         if(Eback>0){
-            SXBenergy[SXBmult] = back.energy;
             SXBtime[SXBmult] = back.timestamp;
             SXBdetnum[SXBmult] = i;
             SXBnum[SXBmult] = lookUp[back.globalChannel];
+            SXBenergy[SXBmult] = back.energy*SXBgain[(i*4)+SXBnum[SXBmult]] + SXBoffset[(i*4)+SXBnum[SXBmult]];
             SXrho[SXBmult] = rhosx[SXBdetnum[SXBmult]];
             SXBz[SXBmult] = SXZoffset + (SXBnum[SXBmult]*75/4) + 75/8; // mm, mid strip for z
             if(ibool) std::cout << jentry << " BACK: det " << i << " strip " << SXBnum[SXBmult] << " energy " << back.energy << " t = " << back.timestamp << " mult " << SXBmult << std::endl;
@@ -299,17 +310,19 @@ for(i=0;i<12;i++){
             }else if(i==11){ SXphi[SXFmult] = 292.5;}
                 
             upnum = -5; downnum = -5; up = false; down = false; upstrp = -5; dwnstrp = -5;
-            Efrntup = frontup.energy;
-            if(Efrntup>0){ up = true;
-                     if(ibool)std::cout << "up " << Efrntup << ", t " << frontup.timestamp;
+            Efrntup[SXFmult] = frontup.energy;
+            if(Efrntup[SXFmult]>0){ up = true;
+                     if(ibool)std::cout << "up " << Efrntup[SXFmult] << ", t " << frontup.timestamp;
                 }
             
-            Efrntdwn = frontdown.energy;
-                if(Efrntdwn>0){ down = true;
-                     if(ibool)std::cout << " down " << Efrntdwn <<", t = " << frontdown.timestamp << std::endl;
+            Efrntdwn[SXFmult] = frontdown.energy;
+                if(Efrntdwn[SXFmult]>0){ down = true;
+                     if(ibool)std::cout << " down " << Efrntdwn[SXFmult] <<", t = " << frontdown.timestamp << std::endl;
                 }
+          
             upnum = lookUp[frontup.globalChannel];
             downnum = lookUp[frontdown.globalChannel];
+        
                     if(ibool) std::cout << "upstrp = " << upnum << ", dwnstrp = " << downnum << std::endl;
                     
             switch (upnum) {
@@ -332,18 +345,18 @@ for(i=0;i<12;i++){
         if(ibool)std::cout << "we have a strip with both ends firing!" << std::endl;
         SXFnum[SXFmult] = upstrp;
         SXFtime[SXFmult] = frontup.timestamp;
-        Estrip = Efrntdwn+Efrntup;
+        Estrip = Efrntdwn[SXFmult] +Efrntup[SXFmult];
         SXFenergy[SXFmult] = Estrip;
         diff = Eback - Estrip;
-        Eratio = Efrntup/Efrntdwn;
-        coeff = (Efrntup+diff-(Efrntdwn*Eratio))/(diff * (1+Eratio));
-            if(Efrntdwn>=Efrntup){
-                SXFz[SXFmult] = (2*(Efrntdwn+(coeff*diff))/Eback) - 1;
-                std::cout << "down>up, z = " << SXFz[SXFmult] << std::endl;
+        Eratio = Efrntup[SXFmult]/Efrntdwn[SXFmult];
+        coeff = (Efrntup[SXFmult]+diff-(Efrntdwn[SXFmult]*Eratio))/(diff * (1+Eratio));
+            if(Efrntdwn[SXFmult]>=Efrntup[SXFmult]){
+                SXFz[SXFmult] = (2*(Efrntdwn[SXFmult]+(coeff*diff))/Eback) - 1;
+               if(ibool) std::cout << "down>up, z = " << SXFz[SXFmult] << std::endl;
                 SXFmult++;
             }else{
-                SXFz[SXFmult] = 1 - (2*(Efrntup+(1-coeff)*diff))/Eback;
-                std::cout << "down<up, z = " << SXFz[SXFmult] << std::endl;
+                SXFz[SXFmult] = 1 - (2*(Efrntup[SXFmult]+(1-coeff)*diff))/Eback;
+               if(ibool) std::cout << "down<up, z = " << SXFz[SXFmult] << std::endl;
                 SXFmult++;
                 }
     }else if(up && down && upstrp!=dwnstrp){
@@ -353,16 +366,16 @@ for(i=0;i<12;i++){
                 // not going to increase the multiplicity here and just have
                 // it get written over
     }else if(!up && down){
-        SXFz[SXFmult] = (2*Efrntdwn/Eback) - 1;
+        SXFz[SXFmult] = (2*Efrntdwn[SXFmult]/Eback) - 1;
         SXFnum[SXFmult] = dwnstrp;
         SXFtime[SXFmult] = frontdown.timestamp;
-        std::cout << "down only z = " << SXFz[SXFmult] << std::endl;
+        if(ibool)std::cout << "down only z = " << SXFz[SXFmult] << std::endl;
         SXFmult++;
     }else if(up && !down){
-        SXFz[SXFmult] = 1 - (2*Efrntup/Eback);
+        SXFz[SXFmult] = 1 - (2*Efrntup[SXFmult]/Eback);
         SXFnum[SXFmult] = upstrp;
         SXFtime[SXFmult] = frontup.timestamp;
-        std::cout << "up only, z = " << SXFz[SXFmult] << std::endl;
+        if(ibool)std::cout << "up only, z = " << SXFz[SXFmult] << std::endl;
                     SXFmult++;
     }else{
         std::cout << jentry << ": no front strip" << std::endl;
@@ -372,14 +385,11 @@ for(i=0;i<12;i++){
         } // end of Eback>0
       if(ibool)  if(SXFmult>0||SXBmult>0) std::cout << "front mult = " << SXFmult << ", back = " << SXBmult << std::endl;
 } // end of loop over 12
-        for(i=0;i<SXFmult;i++){
-            std::cout<< jentry <<" SXFz = " << SXFz[i] << std::endl;
-        }
           
 // *****************************************************
 outputfile->cd();
 outT->Fill();
-    } // end of ring=true condition
+   // } // end of ring=true condition
 
 if(jentry%5000 == 0) std::cout << "Entry " << jentry << " of " << nevents << ", " << 100 * jentry/nevents << "\% complete";
 std::cout << "\r" << std::flush;
