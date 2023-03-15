@@ -93,6 +93,7 @@ std::cout<<"Opening "<<output_filename<<std::endl;
     outT->Branch("SXphi",SXphi,"SXphi[SXFmult]/f");
     outT->Branch("Efrntup",Efrntup,"Efrntup[SXFmult]/f");
     outT->Branch("Efrntdwn",Efrntdwn,"Efrntdwn[SXFmult]/f");
+    outT->Branch("totSXBenergy",&totSXBenergy,"totSXBenergy/f");
     
 Long64_t nevents = tree->GetEntries();
 Long64_t jentry;
@@ -113,6 +114,14 @@ Long64_t jentry;
            SXB >> SXBch[i] >> SXBoffset[i] >> SXBgain[i];
        }
        SXB.close();
+    
+    ifstream SXfvb;
+    SXfvb.open("SX3-frontback.txt");
+    for(i=0;i<48;i++){
+        SXfvb >> SXFch[i] >> SXFoffset[i] >> SXFgain[i];
+        std::cout << SXFoffset[i] << " " << SXFgain[i] << std::endl;
+    }
+    SXfvb.close();
 
 for (jentry=0; jentry<nevents; jentry++){
     tree->GetEntry(jentry);
@@ -155,6 +164,7 @@ for (jentry=0; jentry<nevents; jentry++){
     }
     Estrip = -5.; diff = -5.; Eratio=-5.; coeff=-5.;
     Eback = -5.;
+    totSXBenergy = -1.;
     
 //****************************************************************************
 
@@ -293,11 +303,13 @@ for(i=0;i<12;i++){
             SXBdetnum[SXBmult] = i;
             SXBnum[SXBmult] = lookUp[back.globalChannel];
             SXBenergy[SXBmult] = back.energy*SXBgain[(i*4)+SXBnum[SXBmult]] + SXBoffset[(i*4)+SXBnum[SXBmult]];
+            totSXBenergy += SXBenergy[SXBmult];
             SXrho[SXBmult] = rhosx[SXBdetnum[SXBmult]];
             SXBz[SXBmult] = SXZoffset + (SXBnum[SXBmult]*75/4) + 75/8; // mm, mid strip for z
             if(ibool) std::cout << jentry << " BACK: det " << i << " strip " << SXBnum[SXBmult] << " energy " << back.energy << " t = " << back.timestamp << " mult " << SXBmult << std::endl;
             SXBmult++;
         }} // end of backs
+    
     if(Eback>0){
         for(auto& frontup : event->barrel[i].frontsUp){
         for(auto & frontdown : event->barrel[i].frontsDown){
@@ -340,6 +352,10 @@ for(i=0;i<12;i++){
             }
                  if(ibool) std::cout << ", after dwn switch, strip " << dwnstrp << std::endl;
                 // this isn't going to work if you have only one end on two strips firing
+            //std::cout << "before " << Efrntup[SXFmult];
+            //Efrntup[SXFmult] = (Efrntup[SXFmult]*SXFgain[(i*4)+upstrp]*-1) + SXFoffset[(i*4)+upstrp];
+            Efrntdwn[SXFmult] = (Efrntdwn[SXFmult]*SXFgain[(i*4)+dwnstrp]*-1) + SXFoffset[(i*4)+dwnstrp];
+            //std::cout<< ", after " << Efrntup[SXFmult] << std::endl;
                     
     if(up && down && upstrp==dwnstrp){
         if(ibool)std::cout << "we have a strip with both ends firing!" << std::endl;

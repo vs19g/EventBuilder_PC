@@ -46,9 +46,11 @@ bool up, down;
 float Efrntup[50], Efrntdwn[50], Eback;
 int upstrp, dwnstrp,upnum, downnum;
 float Estrip, diff, Eratio, coeff;
+float totSXBenergy;
 
-int SXBch[48];
+int SXBch[48], SXFch[48];
 float SXBgain[48], SXBoffset[48];
+float SXFgain[48], SXFoffset[48];
 //float SXBenergyMax; int SXBnumMax; int SXBdetMax;
 //float QFenergyMax; int QFnumMax; int QFdetMax;
 //float BUenergyMax; float BDenergyMax; int BUdetMax; int BDdetMax; int BUnumMax; int BDnumMax;
