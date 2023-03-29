@@ -18,7 +18,7 @@ void PruneTree(int runNumber)
   TFile *outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 
   // ***** initialize *****
-  UInt_t QQQmult, BarcMult, BarcUpMult, BarcDnMult;
+  int QQQmult, BarcMult, BarcUpMult, BarcDnMult;
   ULong64_t n = inTree->GetEntries();
   
   std::cout << "Entries = " << n << std::endl;
