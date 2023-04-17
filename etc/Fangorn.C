@@ -19,11 +19,11 @@
 //.dylib or .so
 R__LOAD_LIBRARY(../lib/libEVBDict.dylib);
 
-void Run_Fangorn(int runNumber){
+void Fangorn(int runNumber){
 std::string input_filename = "/Users/theefizzicist/Documents/Projects/18Ne-a-p/WorkingData/built/run_"+std::to_string(runNumber)+".root";
 std::string output_filename = "/Users/theefizzicist/Documents/Projects/18Ne-a-p/WorkingData/trees/run_"+std::to_string(runNumber)+"_18F.root";
 
-std::cout<<"Processing data in "<<input_filename<<std::endl;
+std::cout<<"Processing data from "<<input_filename<<std::endl;
 
 // ***** Input File *****
 TFile* inputfile = TFile::Open(input_filename.c_str(), "READ");
@@ -43,7 +43,7 @@ if(tree == nullptr){
 // ***** output file *****
 TFile* outputfile = TFile::Open(output_filename.c_str(), "RECREATE");
 TTree *outT = new TTree("BarcQQQTreeData","EventBuilder data with cylindrical coords");
-std::cout<<"Opening "<<output_filename<<std::endl;
+std::cout<<"Writing to "<<output_filename<<std::endl;
 
 // ***** initialize *****
 dataQ dQ[4]; // number of each type of detector
@@ -437,9 +437,9 @@ for (int i=0;i<4;i++){
 			iQQQ = 2;
 			break;
 	}
-	//now index must be iQQQ not i
+	//pulling data from fqqq[i] but storing as dQ[iQQQ]
 	if(ibool) std::cout << "in QQQ loop, detector " << iQQQ << std::endl;
-	for(auto& ring : event->fqqq[iQQQ].rings){
+	for(auto& ring : event->fqqq[i].rings){
 		if(ibool) std::cout << "ring mult = " << dQ[iQQQ].Fmult << std::endl;
 		if(ring.energy>0){
 			//store energy & timestamp
@@ -467,7 +467,8 @@ for (int i=0;i<4;i++){
 			if(ibool) std::cout << "ring mult after loop = " << dQ[iQQQ].Fmult << std::endl;
 	//still inside ring loop
 		}}
-	for(auto& wedge : event->fqqq[iQQQ].wedges){
+	//pulling data from fqqq[i] but storing as dQ[iQQQ]
+	for(auto& wedge : event->fqqq[i].wedges){
 		if(ibool) std::cout << "wedge mult = " << dQ[iQQQ].Bmult << std::endl;
 		if(wedge.energy>0){
 			//store energy & timestamp
@@ -563,16 +564,16 @@ std::cout << "\r" << std::flush;
 /**************************************************************************************/
 
 outputfile->cd();
-std::cout << "Printing" << std::endl; outT->Print();
-std::cout << "Writing" << std::endl; outT->Write();
+//std::cout << "Printing" << std::endl; outT->Print();
+std::cout << "\nWriting" << std::endl; outT->Write();
 inputfile->Close();
 outputfile->Close();
 delete inputfile;
 delete outputfile;
 }
 
-void Fangorn(int runMin, int runMax)
+/*void Fangorn(int runMin, int runMax)
 {
 	for(int i=runMin; i<=runMax; i++)
 		Run_Fangorn(i);
-}
+}*/
