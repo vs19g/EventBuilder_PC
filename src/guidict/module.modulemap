@@ -1,0 +1,8 @@
+module "GuiDict" {
+  requires cplusplus
+  module "EVBMainFrame.h" { header "EVBMainFrame.h" export * }
+  module "FileViewFrame.h" { header "FileViewFrame.h" export * }
+  link "libGuiDict.so"
+  export *
+}
+

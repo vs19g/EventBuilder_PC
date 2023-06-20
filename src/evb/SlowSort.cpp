@@ -77,30 +77,8 @@ namespace EventBuilder {
 		m_varMap[DetType::Barrel11Back] = &event.barrel[11].backs;		
 
 		//Barcelona memory
-		m_varMap[DetType::BarcUpstream0Front] = &event.barcUp[0].fronts;
-		m_varMap[DetType::BarcUpstream0Back] = &event.barcUp[0].backs;
-		m_varMap[DetType::BarcUpstream1Front] = &event.barcUp[1].fronts;
-		m_varMap[DetType::BarcUpstream1Back] = &event.barcUp[1].backs;
-		m_varMap[DetType::BarcUpstream2Front] = &event.barcUp[2].fronts;
-		m_varMap[DetType::BarcUpstream2Back] = &event.barcUp[2].backs;
-		m_varMap[DetType::BarcUpstream3Front] = &event.barcUp[3].fronts;
-		m_varMap[DetType::BarcUpstream3Back] = &event.barcUp[3].backs;
-		m_varMap[DetType::BarcUpstream4Front] = &event.barcUp[4].fronts;
-		m_varMap[DetType::BarcUpstream4Back] = &event.barcUp[4].backs;
-		m_varMap[DetType::BarcUpstream5Front] = &event.barcUp[5].fronts;
-		m_varMap[DetType::BarcUpstream5Back] = &event.barcUp[5].backs;
-		m_varMap[DetType::BarcDownstream0Front] = &event.barcDown[0].fronts;
-		m_varMap[DetType::BarcDownstream0Back] = &event.barcDown[0].backs;
-		m_varMap[DetType::BarcDownstream1Front] = &event.barcDown[1].fronts;
-		m_varMap[DetType::BarcDownstream1Back] = &event.barcDown[1].backs;
-		m_varMap[DetType::BarcDownstream2Front] = &event.barcDown[2].fronts;
-		m_varMap[DetType::BarcDownstream2Back] = &event.barcDown[2].backs;
-		m_varMap[DetType::BarcDownstream3Front] = &event.barcDown[3].fronts;
-		m_varMap[DetType::BarcDownstream3Back] = &event.barcDown[3].backs;
-		m_varMap[DetType::BarcDownstream4Front] = &event.barcDown[4].fronts;
-		m_varMap[DetType::BarcDownstream4Back] = &event.barcDown[4].backs;
-		m_varMap[DetType::BarcDownstream5Front] = &event.barcDown[5].fronts;
-		m_varMap[DetType::BarcDownstream5Back] = &event.barcDown[5].backs;
+		m_varMap[DetType::PCAnode] = &event.pc[0].anodes;
+		m_varMap[DetType::PCCathode] = &event.pc[0].cathodes;
 	}
 	
 	bool SlowSort::AddHitToEvent(CompassHit& mhit)
@@ -213,8 +191,8 @@ namespace EventBuilder {
 
 		for(int i=0; i<6; i++)
 		{
-			std::sort(event.barcUp[i].fronts.begin(), event.barcUp[i].fronts.end(), SortEnergy);
-			std::sort(event.barcDown[i].fronts.begin(), event.barcDown[i].fronts.end(), SortEnergy);
+			std::sort(event.pc[i].anodes.begin(), event.pc[i].anodes.end(), SortEnergy);
+			std::sort(event.pc[i].cathodes.begin(), event.pc[i].cathodes.end(), SortEnergy);
 		}
 	}
 

@@ -109,32 +109,19 @@ namespace EventBuilder {
 				}
 				this_chan.local_channel = localchan;
 			}
-			else if(type == "BARCUPSTREAM" && partname == "FRONT")
-			{
-				switch(id)
-				{
-					case 0: this_chan.type = DetType::BarcUpstream0Front; break;
-					case 1: this_chan.type = DetType::BarcUpstream1Front; break;
-					case 2: this_chan.type = DetType::BarcUpstream2Front; break;
-					case 3: this_chan.type = DetType::BarcUpstream3Front; break;
-					case 4: this_chan.type = DetType::BarcUpstream4Front; break;
-					case 5: this_chan.type = DetType::BarcUpstream5Front; break;
+			else if(type == "PC" && partname == "ANODE")
+			{ {
+				this_chan.type = DetType::PCAnode; break;
 				}
 				this_chan.local_channel = localchan;
 			}
-			else if(type == "BARCUPSTREAM" && partname == "BACK")
-			{
-				switch(id)
-				{
-					case 0: this_chan.type = DetType::BarcUpstream0Back; break;
-					case 1: this_chan.type = DetType::BarcUpstream1Back; break;
-					case 2: this_chan.type = DetType::BarcUpstream2Back; break;
-					case 3: this_chan.type = DetType::BarcUpstream3Back; break;
-					case 4: this_chan.type = DetType::BarcUpstream4Back; break;
-					case 5: this_chan.type = DetType::BarcUpstream5Back; break;
+			else if(type == "PC" && partname == "CATHODE")
+			{ {
+				this_chan.type = DetType::PCCathode; break;
 				}
 				this_chan.local_channel = localchan;
 			}
+			/*
 			else if(type == "BARCDOWNSTREAM" && partname == "FRONT")
 			{
 				switch(id)
@@ -161,6 +148,7 @@ namespace EventBuilder {
 				}
 				this_chan.local_channel = localchan;
 			}	
+			*/
 			m_cmap[gchan] = this_chan;
 		}
 		input.close();

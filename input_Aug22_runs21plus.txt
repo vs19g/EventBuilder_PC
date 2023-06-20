@@ -1,8 +1,0 @@
-WorkspaceDir: /media/tandem/Moria/WorkingData/
-ChannelMap: /home/tandem/EventBuilder_Skeleton/etc/ANASEN_TRIUMFAug_run21+_ChannelMap.txt
-ScalerFile: none
-TimeShiftFile: none
-SlowCoincidenceWindow(ns): 3000
-MinRun: 65
-MaxRun: 65
-BufferSize(hits): 200000
