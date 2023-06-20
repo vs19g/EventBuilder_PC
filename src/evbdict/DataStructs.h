@@ -13,9 +13,43 @@ struct DPPChannel
 {
 	double Timestamp;
 	int Channel, Board, Energy, EnergyShort;
-  int64_t EnergyCal;
+	int64_t EnergyCal;
 	int Flags;
 	std::vector<uint16_t> Samples;
+};
+
+struct DetectorHit
+{
+	int globalChannel;
+	double energy;
+	double timestamp;
+};
+
+struct FQQQDetector
+{
+	std::vector<DetectorHit> rings;
+	std::vector<DetectorHit> wedges;
+};
+
+struct BarrelDetector
+{
+	std::vector<DetectorHit> frontsUp;
+	std::vector<DetectorHit> frontsDown;
+	std::vector<DetectorHit> backs;
+};
+
+struct BarcDetector
+{
+	std::vector<DetectorHit> fronts;
+	std::vector<DetectorHit> backs;
+};
+
+struct CoincEvent
+{
+	BarrelDetector barrel[12];
+	FQQQDetector fqqq[4];
+	BarcDetector barcUp[6];
+	BarcDetector barcDown[6];
 };
 
 /*

@@ -10,9 +10,10 @@
 #ifndef COMPASSRUN_H
 #define COMPASSRUN_H
 
+#include "EVBParameters.h"
+#include "EVBWorkspace.h"
 #include "CompassFile.h"
 #include "DataStructs.h"
-#include "RunCollector.h"
 #include "ShiftMap.h"
 #include "ProgressCallback.h"
 #include <TParameter.h>
@@ -22,15 +23,11 @@ namespace EventBuilder {
 	class CompassRun
 	{
 	public:
-		CompassRun();
-		CompassRun(const std::string& dir, size_t bsize);
+		CompassRun(const EVBParameters& params, const std::shared_ptr<EVBWorkspace>& workspace);
 		~CompassRun();
-		inline void SetDirectory(const std::string& dir) { directory = dir; }
-		inline void SetScalerInput(const std::string& filename) { m_scalerinput = filename; }
-		inline void SetRunNumber(int n) { runNum = n; };
-		inline void SetShiftMap(const std::string& filename) { m_smap.SetFile(filename); }
+		inline void SetRunNumber(int n) { m_runNum = n; };
 		void Convert2RawRoot(const std::string& name);
-		void Convert2SortedRoot(const std::string& name, double window);
+		void Convert2SortedRoot(const std::string& name);
 
 		inline void SetProgressCallbackFunc(ProgressCallbackFunc& func) { m_progressCallback = func; }
 		inline void SetProgressFraction(double frac) { m_progressFraction = frac; }
@@ -41,20 +38,19 @@ namespace EventBuilder {
 		void SetScalers();
 		void ReadScalerData(const std::string& filename);
 	
-		std::string directory, m_scalerinput;
+		EVBParameters m_params;
+		std::shared_ptr<EVBWorkspace> m_workspace;
 		std::vector<CompassFile> m_datafiles;
-		unsigned int startIndex; //this is the file we start looking at; increases as we finish files.
+		unsigned int m_startIndex; //this is the file we start looking at; increases as we finish files.
 		ShiftMap m_smap;
 		std::unordered_map<std::string, TParameter<int64_t>> m_scaler_map; //maps scaler files to the TParameter to be saved
 	
 		//Potential branch variables
-		CompassHit hit;
-		std::vector<DPPChannel> event;
+		CompassHit m_hit;
 	
 		//what run is this
-		int runNum;
+		int m_runNum;
 		uint64_t m_totalHits;
-		uint64_t m_buffersize;
 	
 		//Scaler switch
 		bool m_scaler_flag;
