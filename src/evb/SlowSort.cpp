@@ -76,7 +76,7 @@ namespace EventBuilder {
 		m_varMap[DetType::Barrel11FrontDn] = &event.barrel[11].frontsDown;
 		m_varMap[DetType::Barrel11Back] = &event.barrel[11].backs;		
 
-		//Barcelona memory
+		//PC memory
 		m_varMap[DetType::PCAnode] = &event.pc[0].anodes;
 		m_varMap[DetType::PCCathode] = &event.pc[0].cathodes;
 	}
@@ -189,11 +189,10 @@ namespace EventBuilder {
 			std::sort(event.barrel[i].backs.begin(), event.barrel[i].backs.end(), SortEnergy);
 		}
 
-		for(int i=0; i<6; i++)
-		{
-			std::sort(event.pc[i].anodes.begin(), event.pc[i].anodes.end(), SortEnergy);
-			std::sort(event.pc[i].cathodes.begin(), event.pc[i].cathodes.end(), SortEnergy);
-		}
+		
+			std::sort(event.pc[0].anodes.begin(), event.pc[0].anodes.end(), SortEnergy);
+			std::sort(event.pc[0].cathodes.begin(), event.pc[0].cathodes.end(), SortEnergy);
+		
 	}
 
 }
