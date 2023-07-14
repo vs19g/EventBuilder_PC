@@ -1,0 +1,7 @@
+module "EVBDict" {
+  requires cplusplus
+  module "DataStructs.h" { header "DataStructs.h" export * }
+  link "libEVBDict.so"
+  export *
+}
+

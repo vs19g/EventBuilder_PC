@@ -1,0 +1,8 @@
+WorkspaceDir: /home/vigneshsitaraman/PCTesting/WorkingData/
+ChannelMap: /home/vigneshsitaraman/EventBuilder_PC/etc/ANASEN_PC_test.txt
+ScalerFile: ""
+TimeShiftFile: ""
+SlowCoincidenceWindow(ns): 3000
+MinRun: 30
+MaxRun: 30
+BufferSize(hits): 200000

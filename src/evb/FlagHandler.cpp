@@ -21,7 +21,7 @@ namespace EventBuilder {
 	void FlagHandler::CheckFlag(int board, int channel, int flag)
 	{
 	
-		int gchan = channel + board*16;
+		int gchan = channel + board*64;
 		FlagCount& counter = event_count_map[gchan]; //yikes
 	
 		counter.total_counts++;

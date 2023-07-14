@@ -38,18 +38,17 @@ struct BarrelDetector
 	std::vector<DetectorHit> backs;
 };
 
-struct BarcDetector
+struct PCDetector
 {
-	std::vector<DetectorHit> fronts;
-	std::vector<DetectorHit> backs;
+	std::vector<DetectorHit> anodes;
+	std::vector<DetectorHit> cathodes;
 };
 
 struct CoincEvent
 {
 	BarrelDetector barrel[12];
 	FQQQDetector fqqq[4];
-	BarcDetector barcUp[6];
-	BarcDetector barcDown[6];
+	PCDetector pc[1];
 };
 
 /*
