@@ -63,7 +63,7 @@ namespace EventBuilder {
 		bool m_hitUsedFlag;
 		int m_bufsize = 200000; //size of the buffer in hits
 		int m_hitsize; //size of a CompassHit in bytes (without alignment padding)
-		int m_channels_per_board = 16; //Number of channels per digitzer board, important for generating id!
+		int m_channels_per_board = 64; //Number of channels per digitzer board, important for generating id!
 		uint16_t m_header;
 		int m_buffersize;
 	

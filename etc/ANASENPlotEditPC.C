@@ -9,6 +9,8 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <TCutG.h>
+// #include "/BasicPlotPoint.C"
 
 
 R__LOAD_LIBRARY(../lib/libEVBDict.so);
@@ -112,7 +114,7 @@ void Run_ANASENPlotEdit_AllCombos(int runNumber)
 		return;
 	}
 
-
+	
 	uint64_t nevents = tree->GetEntries();
 	std::cout<<"Total events: "<<nevents<<std::endl;
 	std::string name;
@@ -125,6 +127,21 @@ void Run_ANASENPlotEdit_AllCombos(int runNumber)
 	std::string summary_hist_name = "SummaryHistogram";
 	for(auto i=0; i<nevents; i++)
 	{
+
+		//-----------------define cut-----------------------//
+		// TCutG* cutg = new TCutG("CUTG",8);
+		// cutg->SetPoint(0,935.619,2183.76);
+		// cutg->SetPoint(1,920.381,205.576);
+		// cutg->SetPoint(2,966.095,89.2121);
+		// cutg->SetPoint(3,1088,147.394);
+		// cutg->SetPoint(4,1103.24,263.758);
+		// cutg->SetPoint(5,1088,2164.36);
+		// cutg->SetPoint(6,935.619,2222.55);
+		// cutg->SetPoint(7,935.619,2183.76);
+			
+			// Apply the cut on "anode_dE_vs_SX3_E" plot
+			
+
 		count++;
 		if(count == flush_val)
 		{
@@ -156,18 +173,103 @@ void Run_ANASENPlotEdit_AllCombos(int runNumber)
 				name = "barrel"+std::to_string(j)+"_"+std::to_string(back.globalChannel)+"_back";
 				MyFill(histMap,name,4096,0,4096,back.energy);
 				MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0.0, 4096.0, back.globalChannel, back.energy);
-		    }
 
-			for(auto& anode : event->pc[0].anodes){
-			    for(auto& cathode : event->pc[0].cathodes){  
-			    	{
-					name = "PC Anode vs PC Cathode";
-					MyFill(histMap, name, 512,0,4096,512,0,4096, anode.energy, cathode.energy);
-					}
+				// for(auto& cathode : event->pc[0].cathodes){
+				// 	if (cathode.globalChannel==50)
+				// 	{
+						/* code */
+					
+					
+				for(auto& anode : event->pc[0].anodes){
+			    //  	for (auto& x : event->barrel[1].backs) 
+				// 	{					
+			    //     name = "anode_dE_vs_SX3_E0back";
+				// 	MyFill(histMap,name,512,0,4096,512,0,4096,x.energy,anode.energy);
+				// 	}					
+					// cutg->Draw("recreate");
+					// if (!cutg->IsInside(back.energy, anode.energy))
+			    	// continue;
+
+					name = "PC_"+std::to_string(anode.globalChannel)+"_Si_gated_anode";
+					MyFill(histMap, name, 4096,0,4096, anode.energy);
+					
+					name = "anode_dE_vs_SX3_E";
+			    	MyFill(histMap,name,512,0,4096,512,0,4096,back.energy,anode.energy);  // plot qqq vs barcup
 				}
+				
+					// name = "PC_"+std::to_string(anode.globalChannel)+"_anode";
+					// MyFill(histMap, name, 4096,0,4096, anode.energy);
+					// MyFill(histMap, summary_hist_name, 640,0,640,512,0.0,4096, anode.globalChannel, anode.energy);
+			    // for(auto& anode : event->pc[0].anodes){
+
+				for (size_t i = 1; i < event->pc[0].cathodes.size(); i++) {
+    				const auto& cathode1 = event->pc[0].cathodes[i - 1];
+   					const auto& cathode2 = event->pc[0].cathodes[i];
+					
+					
+				    // Check if cathodes are adjacent based on global channels
+    				if (cathode2.globalChannel - cathode1.globalChannel == 1 || (cathode1.globalChannel == 31 && cathode2.globalChannel == 48 ) || (cathode2.globalChannel == 55 && cathode1.globalChannel == 16 )) {
+            			double corr = (cathode2.energy - cathode1.energy)/(cathode2.energy + cathode1.energy);
+
+					name = "PC_corr_ch_"+std::to_string(cathode1.globalChannel)+"_ch_"+std::to_string(cathode2.globalChannel);
+
+        			// Rest of your code to process 'corr' or fill histograms
+					MyFill(histMap, name, 4096,-1,1, corr);
+
+    				}
+				}
+				// }
+
+					// name = "PC_"+std::to_string(cathode.globalChannel)+"_cathode";
+					// MyFill(histMap, name, 4096,0,4096, cathode.energy);
+					// MyFill(histMap, summary_hist_name, 640,0,640,512,0.0,4096, cathode.globalChannel, cathode.energy);
+					
+			    		        
+			
 			}
 
+			for(auto& anode : event->pc[0].anodes){
+		 
+			    	{
+					
+					name = "PC_"+std::to_string(anode.globalChannel)+"_anode";
+					MyFill(histMap, name, 4096,0,4096, anode.energy);
+					MyFill(histMap, summary_hist_name, 640,0,640,512,0,4096, anode.globalChannel, anode.energy);
+					}
+			}
+		
+			for(auto& cathode : event->pc[0].cathodes){  
+			    	{
+					name = "PC_"+std::to_string(cathode.globalChannel)+"_cathode";
+					MyFill(histMap, name, 4096,0,4096, cathode.energy);
+					MyFill(histMap, summary_hist_name, 640,0,640,512,0,4096, cathode.globalChannel, cathode.energy);
+					}
+			}
+			
+
+			
+
+			// // Replot PC plots
+			//     for (auto& anode : event->pc[0].anodes)
+			//     {
+			//         name = "PC_" + std::to_string(anode.globalChannel) + "_anode";
+			//         MyFill(histMap, name, 4096, 0, 4096, anode.energy);
+			//         MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0, 4096, anode.globalChannel, anode.energy);
+			//     }
+
+			//     for (auto& cathode : event->pc[0].cathodes)
+			//     {
+			//         name = "PC_" + std::to_string(cathode.globalChannel) + "_cathode";
+			//         MyFill(histMap, name, 4096, 0, 4096, cathode.energy);
+			//         MyFill(histMap, summary_hist_name, 640, 0, 640, 512, 0, 4096, cathode.globalChannel, cathode.energy);
+			//     }
+					
+
+
 		}
+
+
+
 
 	// for(auto& anode : event->pc[0].anodes){
 	// 		    for(auto& cathode : event->pc[0].cathodes){  

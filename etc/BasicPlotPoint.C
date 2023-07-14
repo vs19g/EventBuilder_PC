@@ -68,7 +68,7 @@ float E; float Etheta; float Ephi;
 // Then I'd also need a branch for position and a reconstruction. 
 
 // Will need coordinate branches and time
-
+/*
 outT->Branch("SX0Fmult",&dSX[0].Fmult,"SX0Fmult/i"); outT->Branch("SX0Bmult",&dSX[0].Bmult,"SX0Bmult/i");
 outT->Branch("SX1Fmult",&dSX[1].Fmult,"SX1Fmult/i"); outT->Branch("SX1Bmult",&dSX[1].Bmult,"SX1Bmult/i");
 outT->Branch("SX2Fmult",&dSX[2].Fmult,"SX2Fmult/i"); outT->Branch("SX2Bmult",&dSX[2].Bmult,"SX2Bmult/i");
@@ -141,7 +141,7 @@ outT->Branch("SX11Fnum",dSX[11].Fnum,"SX11Fnum[SX11Fmult]/i");
 outT->Branch("SX11Bnum",dSX[11].Bnum,"SX11Bnum[SX11Bmult]/i");
 outT->Branch("SX11Fenergy",dSX[11].Fenergy,"SX11Fenergy[SX11Fmult]/f");
 outT->Branch("SX11Benergy",dSX[11].Benergy,"SX11Benergy[SX11Bmult]/f");
-
+*/
 
 outT->Branch("SXBenergyMax",&SXBenergyMax,"SXBenergyMax/f"); // largest SX3 back energy
 outT->Branch("SXBnumMax",&SXBnumMax,"SXBnumMax/i"); // ... and its strip number
@@ -335,8 +335,8 @@ for (i=0;i<4;i++){
 				//dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
 				if(dPC[0].Aenergy[dPC[0].Amult]>PCAenergyMax){
 					PCAenergyMax = dPC[0].Aenergy[dPC[0].Amult];
-					PCAnumMax = dPC[0].Anum[dPC[0].Amult];
-					PCAdetMax = i;
+					// PCAnumMax = dPC[0].Anum[dPC[0].Amult];
+					// PCAdetMax = i;
 				}
 				dPC[0].Amult++;
 			}
@@ -355,8 +355,8 @@ for (i=0;i<4;i++){
 				//dBD[i].Ftime[dBD[i].Fmult] = front.timestamp;
 				if(dPC[0].Cenergy[dPC[0].Cmult]>PCCenergyMax){
 					PCCenergyMax = dPC[0].Cenergy[dPC[0].Cmult];
-					PCCnumMax = dPC[0].Cnum[dPC[0].Cmult];
-					PCCdetMax = i;
+					// PCCnumMax = dPC[0].Cnum[dPC[0].Cmult];
+					// PCCdetMax = i;
 				}
 				dPC[0].Cmult++;
 		    }
@@ -370,9 +370,10 @@ for (i=0;i<4;i++){
 
 // not quite right to have theta = strip number here because of the reversing of the strip
 // numbers between up and downstream. 
-// if (PCAenergyMax>PCCenergyMax){
-// 		dE = PCAenergyMax;
-// 		dEtheta = PCAnumMax; 
+if (PCAenergyMax>PCCenergyMax){
+		dE = PCAenergyMax;
+		dEtheta = PCAnumMax; 
+}
 // }else{
 // 		dE = PCCenergyMax;
 // 		dEtheta = PCCnumMax;
