@@ -129,7 +129,7 @@ void Run_TimePeak(int runNumber)
 				if(eSX3b<back.energy)
 				{
 					eSX3b = back.energy; //store biggest overall energy
-					tSX3b = back.timestamp; //store time from biggest overall energy
+					tSX3b = back.timestamp/1000; //store time from biggest overall energy
 					strSX3b = std::to_string(j); // store SX3Back_j
 				}
 			}
@@ -140,7 +140,7 @@ void Run_TimePeak(int runNumber)
 				if(ePCA<anode.energy)
 				{
 					ePCA = anode.energy; //store biggest overall energy
-					tPCA = anode.timestamp; //store time from biggest overall energy
+					tPCA = anode.timestamp/1000; //store time from biggest overall energy
 				}
 			}
 			if(!event->pc[0].cathodes.empty()) //downstream PC
@@ -149,7 +149,7 @@ void Run_TimePeak(int runNumber)
 				if(ePCC<cathode.energy)
 				{
 					ePCC = cathode.energy; //store biggest overall energy
-					tPCC = cathode.timestamp; //store time from biggest overall energy
+					tPCC = cathode.timestamp/1000; //store time from biggest overall energy
 				}
 			}
 		
@@ -158,7 +158,7 @@ void Run_TimePeak(int runNumber)
 		{
 			//fill summary histograms
 			name = "PC_SX3Back_timePeak";
-			MyFill(histMap,name,12800,-50000,50000,tSX3b-tPCA);
+			MyFill(histMap,name,512,-100,100,tSX3b-tPCA);
 			name = "PC_dE_vs_SX3Back_E";
 			MyFill(histMap,name,512,0,4096,512,0,4096,eSX3b,ePCA);
 			name = "PC_dE_vs_SX3Back" + strSX3b + "_E";
@@ -166,7 +166,7 @@ void Run_TimePeak(int runNumber)
 
 			//fill pc histograms
 			name = "pc_SX3Back_timePeak";
-			MyFill(histMap,name,12800,-50000,50000,tSX3b-tPCA);
+			MyFill(histMap,name,512,-100,100,tSX3b-tPCA);
 			name = "pc_dE_vs_SX3Back_E";
 			MyFill(histMap,name,512,0,4096,512,0,4096,eSX3b,ePCA);
 		}
@@ -174,7 +174,7 @@ void Run_TimePeak(int runNumber)
 		{
 			//fill summary histograms
 			name = "PC_SX3Back_timePeak";
-			MyFill(histMap,name,12800,-50000,50000,tSX3b-tPCC);
+			MyFill(histMap,name,512,-100,100,tSX3b-tPCC);
 			name = "PC_dE_vs_SX3Back_E";
 			MyFill(histMap,name,512,0,4096,512,0,4096,eSX3b,ePCC);
 			name = "PC_dE_vs_SX3Back" + strSX3b + "_E";
@@ -182,7 +182,7 @@ void Run_TimePeak(int runNumber)
 
 			//fill PCDn histograms
 			name = "pcc_SX3Back_timePeak";
-			MyFill(histMap,name,12800,-50000,50000,tSX3b-tPCC);
+			MyFill(histMap,name,512,-100,100,tSX3b-tPCC);
 			name = "pcc_dE_vs_SX3Back_E";
 			MyFill(histMap,name,512,0,4096,512,0,4096,eSX3b,ePCC);
 		}
